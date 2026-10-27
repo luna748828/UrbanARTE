@@ -1,0 +1,25 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: system-ui, sans-serif; background: #fafafa; color: #222; }
+
+.topbar { position: sticky; top: 0; background: #fff; border-bottom: 1px solid #ddd;
+          padding: 14px; text-align: center; font-size: 1.4rem; font-weight: bold; }
+
+main { max-width: 470px; margin: 0 auto; padding-bottom: 70px; }
+
+.historias { display: flex; gap: 14px; overflow-x: auto; padding: 14px; background: #fff;
+             border-bottom: 1px solid #ddd; }
+.historia { text-align: center; font-size: .75rem; }
+.aro { padding: 3px; border-radius: 50%;
+       background: linear-gradient(45deg, #feda75, #d62976, #962fbf); }
+.avatar { width: 56px; height: 56px; border-radius: 50%; background: #ccc; border: 3px solid #fff; }
+.avatar.chico { width: 36px; height: 36px; border: 0; }
+
+.post { background: #fff; border: 1px solid #ddd; margin: 16px 0; border-radius: 6px; }
+.post-header { display: flex; align-items: center; gap: 10px; padding: 10px; }
+.imagen { width: 100%; aspect-ratio: 1; }
+.acciones { padding: 10px; font-size: 1.4rem; letter-spacing: 10px; }
+.post p { padding: 0 10px 12px; margin: 0; }
+
+.bottombar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff;
+             border-top: 1px solid #ddd; display: flex; justify-content: space-around;
+             padding: 12px; font-size: 1.4rem; }

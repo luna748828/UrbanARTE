@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UrbanARTE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">UrbanARTE</header>
+
+  <main>
+    <section class="historias">
+      {% for h in historias %}
+        <div class="historia">
+          <div class="aro"><div class="avatar"></div></div>
+          <small>{{ h }}</small>
+        </div>
+      {% endfor %}
+    </section>
+
+    {% for p in posts %}
+    <article class="post">
+      <div class="post-header">
+        <div class="avatar chico"></div>
+        <div><strong>{{ p.autor }}</strong><br><small>📍 {{ p.lugar }}</small></div>
+      </div>
+      <div class="imagen" style="background: {{ p.color }}"></div>
+      <div class="acciones">♡ 💬 ➤</div>
+      <p><strong>{{ p.autor }}</strong> {{ p.texto }}</p>
+    </article>
+    {% endfor %}
+  </main>
+
+  <nav class="bottombar">
+    <span>🏠</span><span>🔍</span><span>➕</span><span>🗺️</span><span>👤</span>
+  </nav>
+</body>
+</html>
