@@ -70,3 +70,19 @@ main { max-width: 480px; margin: 0 auto; padding: 8px 18px 100px; }
   border: 1px solid #ffffff22; border-radius: 40px;
   display: flex; gap: 28px; padding: 12px 26px; font-size: 22px;
 }
+
+/* Barra inferior con enlaces */
+.bottombar a { text-decoration: none; color: inherit; }
+
+/* Mapa */
+#mapa { height: 55vh; border-radius: 12px; border: 2px solid #ffffff22; }
+.form-mapa { display: grid; gap: 10px; margin-top: 16px; }
+.form-mapa select, .form-mapa input {
+  padding: 12px; border-radius: 8px; border: 1px solid #ffffff33;
+  background: #17171d; color: #f3efe6; font-family: inherit;
+}
+.form-mapa button {
+  padding: 12px; border: 0; border-radius: 8px; cursor: pointer; font-weight: 700;
+  background: linear-gradient(90deg, #ff3d6e, #ffb703); color: #0d0d10;
+}
+.ayuda { margin: 0; font-size: 13px; opacity: .7; }

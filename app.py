@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from supabase import create_client
 from dotenv import load_dotenv
 
@@ -66,6 +66,50 @@ def index():
 def feed():
     return render_template("_posts.html", posts=cargar_posts())
 
+@app.route("/mapa")
+def mapa():
+    res = (
+        supabase.table("publicaciones")
+        .select("id, descripcion, usuarios(nombre_usuario), ubicaciones(id)")
+        .order("fecha_publicacion", desc=True)
+        .execute()
+    )
+    pendientes = [
+        {
+            "id": r["id"],
+            "titulo": f'{(r.get("usuarios") or {}).get("nombre_usuario", "anónimo")}: {(r["descripcion"] or "sin descripción")[:40]}',
+        }
+        for r in res.data
+        if not r.get("ubicaciones")  # solo las que aún no tienen ubicación
+    ]
+    return render_template("mapa.html", pendientes=pendientes)
 
+
+@app.route("/api/ubicaciones")
+def listar_ubicaciones():
+    res = (
+        supabase.table("ubicaciones")
+        .select("direccion_aprox, latitud, longitud, "
+                "publicaciones(descripcion, imagen, usuarios(nombre_usuario))")
+        .execute()
+    )
+    return jsonify(res.data)
+
+
+@app.route("/api/ubicaciones", methods=["POST"])
+def guardar_ubicacion():
+    d = request.get_json()
+    try:
+        supabase.table("ubicaciones").insert({
+            "publicacion_id": d["publicacion_id"],
+            "direccion_aprox": d.get("direccion_aprox"),
+            "latitud": d["latitud"],
+            "longitud": d["longitud"],
+        }).execute()
+        return jsonify({"ok": True})
+    except Exception as e:
+        print("Error guardando ubicación:", e)
+        return jsonify({"ok": False, "error": str(e)}), 400
+    
 if __name__ == "__main__":
     app.run(debug=True)
