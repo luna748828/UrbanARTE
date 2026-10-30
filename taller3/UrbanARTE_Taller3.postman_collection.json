@@ -1,0 +1,11 @@
+{"info":{"name":"UrbanARTE - Taller 3","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"item":[
+{"name":"1. GET eventos (200)","request":{"method":"GET","url":"http://localhost:3000/api/v1/eventos"}},
+{"name":"2. GET eventos/1 (200)","request":{"method":"GET","url":"http://localhost:3000/api/v1/eventos/1"}},
+{"name":"3. GET eventos/9999 (404)","request":{"method":"GET","url":"http://localhost:3000/api/v1/eventos/9999"}},
+{"name":"4. POST eventos (201)","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer token-jill"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"nombreEvento\":\"Taller de grafiti\",\"fechaHora\":\"2026-12-20T15:00:00Z\",\"ubicacionEscrita\":\"Parque de la 93\",\"cuposDisponibles\":20}"},"url":"http://localhost:3000/api/v1/eventos"}},
+{"name":"5. POST eventos sin token (401)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"nombreEvento\":\"Sin token\",\"fechaHora\":\"2026-12-20T15:00:00Z\"}"},"url":"http://localhost:3000/api/v1/eventos"}},
+{"name":"6. PATCH eventos/1 (200)","request":{"method":"PATCH","header":[{"key":"Authorization","value":"Bearer token-jill"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"cuposDisponibles\":40}"},"url":"http://localhost:3000/api/v1/eventos/1"}},
+{"name":"7. PATCH eventos/1 otro usuario (403)","request":{"method":"PATCH","header":[{"key":"Authorization","value":"Bearer token-luna"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"cuposDisponibles\":5}"},"url":"http://localhost:3000/api/v1/eventos/1"}},
+{"name":"8. DELETE eventos/1 otro usuario (403)","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer token-luna"}],"url":"http://localhost:3000/api/v1/eventos/1"}},
+{"name":"9. DELETE eventos/1 (204)","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer token-jill"}],"url":"http://localhost:3000/api/v1/eventos/1"}}
+]}
