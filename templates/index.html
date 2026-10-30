@@ -2,38 +2,43 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UrbanARTE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header class="topbar">UrbanARTE</header>
+  <header>
+    <h1 class="logo">UrbanARTE</h1>
+    <p class="lema">el arte sale a la calle</p>
+  </header>
 
-  <main>
-    <section class="historias">
-      {% for h in historias %}
-        <div class="historia">
-          <div class="aro"><div class="avatar"></div></div>
-          <small>{{ h }}</small>
-        </div>
-      {% endfor %}
-    </section>
-
-    {% for p in posts %}
-    <article class="post">
-      <div class="post-header">
-        <div class="avatar chico"></div>
-        <div><strong>{{ p.autor }}</strong><br><small>📍 {{ p.lugar }}</small></div>
+  <section class="historias">
+    {% for h in historias %}
+      <div class="historia">
+        <div class="anillo"><div>{{ h[0]|upper }}</div></div>
+        {{ h }}
       </div>
-      <div class="imagen" style="background: {{ p.color }}"></div>
-      <div class="acciones">♡ 💬 ➤</div>
-      <p><strong>{{ p.autor }}</strong> {{ p.texto }}</p>
-    </article>
     {% endfor %}
+  </section>
+
+  <main id="feed">
+    {% include "_posts.html" %}
   </main>
 
   <nav class="bottombar">
     <span>🏠</span><span>🔍</span><span>➕</span><span>🗺️</span><span>👤</span>
   </nav>
+
+  <script>
+    // Actualiza las publicaciones cada 15 segundos sin recargar la página
+    setInterval(async () => {
+      try {
+        const r = await fetch("/feed");
+        if (r.ok) document.getElementById("feed").innerHTML = await r.text();
+      } catch (e) {}
+    }, 15000);
+  </script>
 </body>
 </html>

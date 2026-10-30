@@ -1,0 +1,25 @@
+{% for p in posts %}
+<article class="post" style="--acento: {{ p.acento }};">
+  <div class="post-header">
+    <div class="avatar">{{ p.autor[0]|upper }}</div>
+    <div>
+      <div class="autor">{{ p.autor }}</div>
+      <div class="lugar">📍 {{ p.lugar or "Sin ubicación" }}</div>
+    </div>
+  </div>
+
+  <div class="marco">
+    {% if p.imagen_url %}
+      <img class="imagen" src="{{ p.imagen_url }}" alt="Obra de {{ p.autor }}">
+    {% else %}
+      <div class="sin-imagen"></div>
+    {% endif %}
+    <div class="pie">{{ p.autor }}</div>
+  </div>
+
+  <div class="acciones">♡ 💬 ➤</div>
+  <p class="texto"><strong>{{ p.autor }}</strong> {{ p.texto }}</p>
+</article>
+{% else %}
+<p class="vacio">Aún no hay obras en la pared…</p>
+{% endfor %}
