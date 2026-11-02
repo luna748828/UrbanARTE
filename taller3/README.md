@@ -1,6 +1,6 @@
 # UrbanARTE - API REST (Taller 3)
 
-API REST en **Node.js + TypeScript + Express** para el módulo de **eventos artísticos** de UrbanARTE, una app para ubicar murales de arte urbano y organizar eventos en la ciudad.
+API REST en **Node.js + TypeScript + Express** para el módulo de **eventos artísticos y ubicaciones** de UrbanARTE, una app para ubicar murales de arte urbano y organizar eventos en la ciudad.
 
 Los datos se guardan **en memoria (arrays)**: no hay base de datos y todo se reinicia al reiniciar el servidor.
 
@@ -30,7 +30,7 @@ Debe aparecer:
 Servidor listo en http://localhost:3000
 ```
 
-Prueba rápida en el navegador: <http://localhost:3000/api/v1/eventos>
+Prueba rápida en el navegador: <http://localhost:3000/api/v1/eventos> o <http://localhost:3000/api/v1/ubicaciones>
 
 ## Scripts npm
 
@@ -77,13 +77,13 @@ Tokens de prueba (fijos, solo para el taller):
 | `token-jill` | 1 |
 | `token-luna` | 2 |
 
-Solo el **organizador** de un evento (quien lo creó) puede editarlo o borrarlo.
+Solo el **organizador** de un evento o creador de una ubicación (quien lo creó) puede editarlo o borrarlo.
 
 ---
 
 ## Endpoints
 
-### Implementados (5)
+### Implementados (10)
 
 Base URL: `http://localhost:3000/api/v1`
 
@@ -94,6 +94,11 @@ Base URL: `http://localhost:3000/api/v1`
 | POST | `/eventos` | Sí | 201, 400, 401 |
 | PATCH | `/eventos/:id` | Sí | 200, 400, 401, 403, 404 |
 | DELETE | `/eventos/:id` | Sí | 204, 400, 401, 403, 404 |
+| GET | `/ubicaciones` | No | 200 |
+| GET | `/ubicaciones/:id` | No | 200, 404 |
+| POST | `/ubicaciones` | Sí | 201, 400, 401 |
+| PATCH | `/ubicaciones/:id` | Sí | 200, 400, 401, 403, 404 |
+| DELETE | `/ubicaciones/:id` | Sí | 204, 400, 401, 403, 404 |
 
 **Body para crear un evento (POST):**
 
@@ -104,6 +109,16 @@ Base URL: `http://localhost:3000/api/v1`
 | `ubicacionEscrita` | string | No | - |
 | `cuposDisponibles` | number | No | Entero mayor o igual a 0 |
 
+**Body para crear una ubicación (POST):**
+
+| Campo | Tipo | Obligatorio | Regla |
+|---|---|---|---|
+| `nombre` | string | Sí | No puede estar vacío |
+| `direccion` | string | Sí | No puede estar vacío |
+| `latitud` | number | Sí | Coordenada válida |
+| `longitud` | number | Sí | Coordenada válida |
+| `categoria` | string | No | Ej. Galería, Mural, Parque |
+
 **Body para editar (PATCH):** cualquiera de los campos anteriores, mínimo uno.
 
 ### Solo documentados (no implementados en el código)
@@ -111,17 +126,17 @@ Base URL: `http://localhost:3000/api/v1`
 Están descritos en el inventario de endpoints del documento de entrega, pero no están programados en este servidor:
 
 - `GET /publicaciones`, `GET /publicaciones/:id`, `POST /publicaciones`, `DELETE /publicaciones/:id`
-- `GET /ubicaciones`, `POST /ubicaciones`
 - `POST /eventos/:id/asistentes`
 - `POST /auth/login`
 
-_(Las publicaciones y ubicaciones existen hoy en la app Flask del proyecto, `app.py`, conectada a Supabase.)_
+_(Las publicaciones existen hoy en la app Flask del proyecto, app.py, conectada a Supabase.)_
 
----
 
 ## Ejemplos con curl
 
 > En Windows, usa **Git Bash** para estos comandos. En PowerShell, `curl` es otro comando; usa `curl.exe` y comillas escapadas, o prueba con Postman.
+
+### Eventos
 
 **Listar eventos**
 ```bash
@@ -161,14 +176,43 @@ curl -X POST http://localhost:3000/api/v1/eventos \
   -H "Content-Type: application/json" \
   -d '{"nombreEvento":"Sin token","fechaHora":"2026-12-20T15:00:00Z"}'
 ```
+### Ubicaciones
+
+**Listar ubicaciones**
+```bash
+curl http://localhost:3000/api/v1/ubicaciones
+```
+**Ver una ubicación**
+```bash
+curl http://localhost:3000/api/v1/ubicaciones/1
+```
+**Crear una ubicación**
+```bash
+curl -X POST http://localhost:3000/api/v1/ubicaciones \
+  -H "Authorization: Bearer token-luna" \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Galería Luna","direccion":"Carrera 7 #12-34","latitud":4.6012,"longitud":-74.0721,"categoria":"Galería"}'
+```
+**Editar una ubicación**
+```bash
+curl -X PATCH http://localhost:3000/api/v1/ubicaciones/3 \
+  -H "Authorization: Bearer token-luna" \
+  -H "Content-Type: application/json" \
+  -d '{"nombre":"Galería Luna (Actualizado)"}'
+```
+**Eliminar una ubicación**
+```bash
+curl -X DELETE http://localhost:3000/api/v1/ubicaciones/3 \
+  -H "Authorization: Bearer token-luna"
+```
 
 ## Colección de Postman
 
-El archivo `UrbanARTE_Taller3.postman_collection.json` tiene 9 requests (casos exitosos y de error).
+El archivo `UrbanARTE_Taller3.postman_collection.json` tiene 14 requests (casos exitosos y de error).
 
 1. En Postman: **Import** y selecciona el archivo (o pega su contenido).
 2. Si usas Postman en el navegador, activa el **Desktop Agent** (la web no puede llegar a `localhost`).
-3. Con el servidor corriendo, ejecuta los requests en orden del 1 al 9. El 9 va al final porque borra el evento 1.
+3. Con el servidor corriendo, ejecuta los requests en orden.
 4. Para repetir las pruebas, reinicia el servidor (los datos vuelven al estado inicial).
 
 ## Notas
