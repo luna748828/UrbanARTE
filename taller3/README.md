@@ -4,7 +4,7 @@ API REST en **Node.js + TypeScript + Express** para el módulo de **eventos art�
 
 Los datos se guardan **en memoria (arrays)**: no hay base de datos y todo se reinicia al reiniciar el servidor.
 
-**Integrantes:** Jillian Sofia Caicedo Buitrago, _(completar con los demás integrantes)_
+**Integrantes:** Jillian Sofia Caicedo Buitrago, Luna Camila Acosta Sierra
 
 ---
 
