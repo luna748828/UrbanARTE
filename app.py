@@ -1,4 +1,5 @@
 import os
+from auth import bp as auth_bp               
 from flask import Flask, render_template, request, jsonify
 from supabase import create_client
 from dotenv import load_dotenv
@@ -6,6 +7,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY")
+app.register_blueprint(auth_bp)
 supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
 
 # Colores "de pintura" que se reparten entre las publicaciones
