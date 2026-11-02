@@ -1,11 +1,430 @@
-{"info":{"name":"UrbanARTE - Taller 3","schema":"https://schema.getpostman.com/json/collection/v2.1.0/collection.json"},"item":[
-{"name":"1. GET eventos (200)","request":{"method":"GET","url":"http://localhost:3000/api/v1/eventos"}},
-{"name":"2. GET eventos/1 (200)","request":{"method":"GET","url":"http://localhost:3000/api/v1/eventos/1"}},
-{"name":"3. GET eventos/9999 (404)","request":{"method":"GET","url":"http://localhost:3000/api/v1/eventos/9999"}},
-{"name":"4. POST eventos (201)","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer token-jill"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"nombreEvento\":\"Taller de grafiti\",\"fechaHora\":\"2026-12-20T15:00:00Z\",\"ubicacionEscrita\":\"Parque de la 93\",\"cuposDisponibles\":20}"},"url":"http://localhost:3000/api/v1/eventos"}},
-{"name":"5. POST eventos sin token (401)","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"nombreEvento\":\"Sin token\",\"fechaHora\":\"2026-12-20T15:00:00Z\"}"},"url":"http://localhost:3000/api/v1/eventos"}},
-{"name":"6. PATCH eventos/1 (200)","request":{"method":"PATCH","header":[{"key":"Authorization","value":"Bearer token-jill"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"cuposDisponibles\":40}"},"url":"http://localhost:3000/api/v1/eventos/1"}},
-{"name":"7. PATCH eventos/1 otro usuario (403)","request":{"method":"PATCH","header":[{"key":"Authorization","value":"Bearer token-luna"},{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\"cuposDisponibles\":5}"},"url":"http://localhost:3000/api/v1/eventos/1"}},
-{"name":"8. DELETE eventos/1 otro usuario (403)","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer token-luna"}],"url":"http://localhost:3000/api/v1/eventos/1"}},
-{"name":"9. DELETE eventos/1 (204)","request":{"method":"DELETE","header":[{"key":"Authorization","value":"Bearer token-jill"}],"url":"http://localhost:3000/api/v1/eventos/1"}}
-]}
+{
+  "info": {
+    "_postman_id": "2e7675b9-720a-4a3c-ba13-5166a1f2cdb7",
+    "name": "UrbanARTE - Taller 3",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "59391239",
+    "_collection_link": "https://go.postman.co/collection/59391239-2e7675b9-720a-4a3c-ba13-5166a1f2cdb7?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. GET eventos (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. GET eventos/1 (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. GET eventos/9999 (404)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos/9999",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos",
+            "9999"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. POST eventos (201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0i6t}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombreEvento\":\"Taller de grafiti\",\"fechaHora\":\"2026-12-20T15:00:00Z\",\"ubicacionEscrita\":\"Parque de la 93\",\"cuposDisponibles\":20}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. POST eventos sin token (401)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombreEvento\":\"Sin token\",\"fechaHora\":\"2026-12-20T15:00:00Z\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. PATCH eventos/1 (200)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0i6t}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cuposDisponibles\":40}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. PATCH eventos/1 otro usuario (403)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0se8}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cuposDisponibles\":5}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "8. DELETE eventos/1 otro usuario (403)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0se8}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "9. DELETE eventos/1 (204)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{bearer_token_0i6t}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/eventos/1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "eventos",
+            "1"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "10. POST ubicaciones (201)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "token-luna",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"nombre\": \"Galería de Arte Luna\",\r\n  \"direccion\": \"Carrera 7 #12-34\",\r\n  \"latitud\": 4.6012,\r\n  \"longitud\": -74.0721,\r\n  \"categoria\": \"Galería\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/ubicaciones",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "ubicaciones"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "11. GET ubicaciones (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/ubicaciones",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "ubicaciones"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "12. GET ubicaciones/3 (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/ubicaciones/3",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "ubicaciones",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "13. PATCH ubicaciones/3 (200)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "token-luna",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"nombre\": \"Galería de Arte Luna (Actualizado)\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/v1/ubicaciones/3",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "ubicaciones",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "14. DELETE ubicaciones/3 (204)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "token-luna",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/v1/ubicaciones/3",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "v1",
+            "ubicaciones",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "bearer_token_0i6t",
+      "secret": true
+    },
+    {
+      "key": "bearer_token_0se8",
+      "secret": true
+    }
+  ]
+}
