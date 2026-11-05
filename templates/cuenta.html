@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mi cuenta · UrbanARTE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    body { background:#0f0f14; color:#f2f0ea; font-family:system-ui,sans-serif; margin:0; }
+    .caja { max-width:380px; margin:60px auto; padding:0 16px 120px; }
+    h1 { color:#ffb703; font-style:italic; text-align:center; }
+    form { display:flex; flex-direction:column; gap:12px; }
+    input, button, .boton { padding:12px; font-size:1rem; border-radius:10px; border:1px solid #333; }
+    input { background:#1b1b24; color:#f2f0ea; }
+    button, .boton { background:#7b5cff; color:#fff; border:0; cursor:pointer; text-align:center; text-decoration:none; display:block; }
+    button.peligro { background:#ff3d6e; }
+    .aviso { background:#2a1c24; border-left:4px solid #ff3d6e; padding:10px; border-radius:6px; }
+    .zona { border:1px solid #3a2530; border-radius:12px; padding:16px; margin-top:28px; }
+    small { color:#a9a6b3; }
+  </style>
+</head>
+<body>
+  <div class="caja">
+    <h1>UrbanARTE</h1>
+    <h2>Mi cuenta</h2>
+    <p>Sesión iniciada como <strong>@{{ session.get('nombre_usuario') }}</strong></p>
+    {% for m in get_flashed_messages() %}<p class="aviso">{{ m }}</p>{% endfor %}
+
+    <a class="boton" href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+
+    <div class="zona">
+      <h3>Desactivar mi cuenta</h3>
+      <p><small>Tu cuenta dejará de poder iniciar sesión. Para confirmar, escribe tu contraseña.</small></p>
+      <form method="post" action="{{ url_for('auth.desactivar_cuenta') }}"
+            onsubmit="return confirm('¿Seguro que quieres desactivar tu cuenta?');">
+        <input name="contrasena" type="password" placeholder="Tu contraseña" required>
+        <button class="peligro">Desactivar mi cuenta</button>
+      </form>
+    </div>
+  </div>
+  {% include "_nav.html" %}
+</body>
+</html>

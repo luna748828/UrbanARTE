@@ -96,10 +96,15 @@ def login():
                 flash("Correo o contraseña incorrectos.")
             return render_template("login.html")
 
-        perfil = (datos.table("usuarios").select("id, nombre_usuario, rol")
+        perfil = (datos.table("usuarios").select("id, nombre_usuario, rol, activo")
                   .eq("id", r.user.id).execute().data)
         if not perfil:
             flash("Tu cuenta no tiene perfil. Avisa al equipo.")
+            return render_template("login.html")
+
+        # 5.6: las cuentas desactivadas no pueden entrar
+        if perfil[0].get("activo") is False:
+            flash("Esta cuenta está desactivada.")
             return render_template("login.html")
 
         session["usuario_id"] = perfil[0]["id"]
@@ -109,7 +114,51 @@ def login():
     return render_template("login.html")
 
 
+# 5.5: cierre de sesión
 @bp.route("/logout")
 def logout():
     session.clear()
+    flash("Cerraste sesión.")
     return redirect(url_for("auth.login"))
+
+
+# Página de la cuenta: desde aquí se cierra sesión o se desactiva la cuenta
+@bp.route("/cuenta")
+@login_required
+def cuenta():
+    return render_template("cuenta.html")
+
+
+# 5.6: desactivar la cuenta (HU12). Pide la contraseña para confirmar.
+@bp.route("/cuenta/desactivar", methods=["POST"])
+@login_required
+def desactivar_cuenta():
+    clave = request.form.get("contrasena", "")
+    if not clave:
+        flash("Escribe tu contraseña para confirmar.")
+        return redirect(url_for("auth.cuenta"))
+
+    perfil = (datos.table("usuarios").select("correo")
+              .eq("id", session["usuario_id"]).execute().data)
+    if not perfil:
+        session.clear()
+        return redirect(url_for("auth.login"))
+
+    # La contraseña se comprueba iniciando sesión otra vez con un cliente nuevo
+    try:
+        cliente_auth().auth.sign_in_with_password(
+            {"email": perfil[0]["correo"], "password": clave})
+    except Exception:
+        flash("La contraseña es incorrecta.")
+        return redirect(url_for("auth.cuenta"))
+
+    try:
+        (datos.table("usuarios").update({"activo": False})
+         .eq("id", session["usuario_id"]).execute())
+    except Exception as e:
+        flash(f"No se pudo desactivar la cuenta: {e}")
+        return redirect(url_for("auth.cuenta"))
+
+    session.clear()
+    flash("Tu cuenta fue desactivada.")
+    return redirect(url_for("auth.login"))      
