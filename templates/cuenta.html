@@ -29,12 +29,12 @@
     <a class="boton" href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
 
     <div class="zona">
-      <h3>Desactivar mi cuenta</h3>
-      <p><small>Tu cuenta dejará de poder iniciar sesión. Para confirmar, escribe tu contraseña.</small></p>
+      <h3>Dar de baja mi cuenta</h3>
+      <p><small>Se eliminará tu acceso y tus datos personales. Para volver a UrbanARTE tendrás que crear una cuenta nueva. Para confirmar, escribe tu contraseña.</small></p>
       <form method="post" action="{{ url_for('auth.desactivar_cuenta') }}"
-            onsubmit="return confirm('¿Seguro que quieres desactivar tu cuenta?');">
+            onsubmit="return confirm('¿Seguro? Esta acción no se puede deshacer.');">
         <input name="contrasena" type="password" placeholder="Tu contraseña" required>
-        <button class="peligro">Desactivar mi cuenta</button>
+        <button class="peligro">Dar de baja mi cuenta</button>
       </form>
     </div>
   </div>

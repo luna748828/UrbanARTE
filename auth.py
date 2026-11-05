@@ -11,6 +11,9 @@ bp = Blueprint("auth", __name__)
 
 URL = os.getenv("SUPABASE_URL")
 KEY = os.getenv("SUPABASE_KEY")
+# Clave secreta de Supabase: solo se usa en el servidor para eliminar la cuenta de acceso.
+# Va únicamente en el .env. Nunca en el código, ni en Git, ni en el navegador.
+SERVICE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
 # Cliente solo para leer y escribir tablas (no se usa para iniciar sesión)
 datos = create_client(URL, KEY)
@@ -129,17 +132,23 @@ def cuenta():
     return render_template("cuenta.html")
 
 
-# 5.6: desactivar la cuenta (HU12). Pide la contraseña para confirmar.
+# 5.6: dar de baja la cuenta (HU12). Pide la contraseña para confirmar.
+# Se elimina la cuenta de acceso y se borran los datos personales del perfil.
+# Para volver a usar UrbanARTE hay que crear una cuenta nueva desde /registro.
 @bp.route("/cuenta/desactivar", methods=["POST"])
 @login_required
 def desactivar_cuenta():
+    if not SERVICE_KEY:
+        flash("No se puede dar de baja la cuenta: falta SUPABASE_SERVICE_KEY en el archivo .env.")
+        return redirect(url_for("auth.cuenta"))
+
     clave = request.form.get("contrasena", "")
     if not clave:
         flash("Escribe tu contraseña para confirmar.")
         return redirect(url_for("auth.cuenta"))
 
-    perfil = (datos.table("usuarios").select("correo")
-              .eq("id", session["usuario_id"]).execute().data)
+    uid = session["usuario_id"]
+    perfil = datos.table("usuarios").select("correo").eq("id", uid).execute().data
     if not perfil:
         session.clear()
         return redirect(url_for("auth.login"))
@@ -152,13 +161,28 @@ def desactivar_cuenta():
         flash("La contraseña es incorrecta.")
         return redirect(url_for("auth.cuenta"))
 
+    # 1) Se elimina la cuenta de acceso. Así el correo queda libre para registrarse de nuevo.
     try:
-        (datos.table("usuarios").update({"activo": False})
-         .eq("id", session["usuario_id"]).execute())
+        create_client(URL, SERVICE_KEY).auth.admin.delete_user(uid)
     except Exception as e:
-        flash(f"No se pudo desactivar la cuenta: {e}")
+        flash(f"No se pudo eliminar la cuenta: {e}")
         return redirect(url_for("auth.cuenta"))
 
+    # 2) Se borran los datos personales del perfil y se marca como inactivo.
+    #    La fila se conserva (las publicaciones apuntan a ella) pero ya no identifica a nadie.
+    corto = str(uid)[:8]
+    try:
+        datos.table("usuarios").update({
+            "activo": False,
+            "nombre_usuario": f"desactivada_{corto}",
+            "correo": f"desactivada_{corto}@urbanarte.invalid",
+            "biografia": "",
+        }).eq("id", uid).execute()
+    except Exception as e:
+        session.clear()
+        flash(f"Tu acceso se eliminó, pero no se pudo limpiar el perfil ({e}). Avisa al equipo.")
+        return redirect(url_for("auth.login"))
+
     session.clear()
-    flash("Tu cuenta fue desactivada.")
-    return redirect(url_for("auth.login"))      
+    flash("Tu cuenta fue dada de baja. Si quieres volver, crea una cuenta nueva.")
+    return redirect(url_for("auth.login")) 
