@@ -1,6 +1,6 @@
-from repositories.publicaciones import PublicacionRepository
-from repositories.usuarios import UsuarioRepository
-from repositories.ubicaciones import UbicacionRepository
+from data.repositories.publicaciones import PublicacionRepository
+from data.repositories.usuarios import UsuarioRepository
+from data.repositories.ubicaciones import UbicacionRepository
 
 class FeedService:
     @staticmethod

@@ -49,3 +49,12 @@ class PublicacionRepository:
             for r in res.data
             if not r.get("ubicaciones")
         ]
+
+    @staticmethod
+    def crear(usuario_id, descripcion, imagen):
+        res = db.table("publicaciones").insert({
+            "usuario_id": usuario_id,
+            "descripcion": descripcion,
+            "imagen": imagen,
+        }).execute()
+        return res.data[0]["id"]

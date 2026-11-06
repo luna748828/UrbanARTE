@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from routes.auth import login_required
-from services.perfil_service import PerfilService
+from features.auth.auth import login_required
+from features.perfil.perfil_service import PerfilService
 
 bp = Blueprint("perfil", __name__, url_prefix="/cuenta")
 
@@ -9,7 +9,7 @@ bp = Blueprint("perfil", __name__, url_prefix="/cuenta")
 def ver_perfil():
     usuario_id = session.get("usuario_id")
     perfil = PerfilService.obtener_perfil(usuario_id)
-    return render_template("cuenta.html", perfil=perfil)
+    return render_template("perfil/cuenta.html", perfil=perfil)
 
 @bp.route("/editar", methods=["POST"])
 @login_required

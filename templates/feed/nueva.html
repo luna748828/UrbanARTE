@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nueva publicación - UrbanARTE</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .nueva { max-width: 560px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .nueva textarea, .nueva input { padding: 10px; font: inherit; width: 100%; box-sizing: border-box; }
+    .nueva button { padding: 12px; cursor: pointer; font: inherit; }
+    #mapa { height: 300px; border-radius: 12px; }
+    .aviso { color: #ff3d6e; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="logo">UrbanARTE</h1>
+    <p class="lema">nueva publicación</p>
+  </header>
+
+  <form class="nueva" method="POST">
+    {% with mensajes = get_flashed_messages() %}
+      {% for m in mensajes %}<p class="aviso">{{ m }}</p>{% endfor %}
+    {% endwith %}
+
+    <textarea name="descripcion" rows="4" placeholder="Cuéntanos sobre este arte" required></textarea>
+    <input type="url" name="imagen" placeholder="Enlace de la imagen (https://...)">
+    <input type="text" name="direccion" placeholder="Dirección aproximada (opcional)">
+
+    <label>Toca el mapa para marcar dónde está (opcional):</label>
+    <div id="mapa"></div>
+    <input type="hidden" name="lat" id="lat">
+    <input type="hidden" name="lng" id="lng">
+
+    <button type="submit">Publicar</button>
+    <a href="{{ url_for('feed.index') }}">Cancelar</a>
+  </form>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const mapa = L.map("mapa").setView([4.6097, -74.0817], 12);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(mapa);
+
+    let marcador = null;
+    mapa.on("click", (e) => {
+      document.getElementById("lat").value = e.latlng.lat.toFixed(6);
+      document.getElementById("lng").value = e.latlng.lng.toFixed(6);
+      if (marcador) marcador.setLatLng(e.latlng);
+      else marcador = L.marker(e.latlng).addTo(mapa);
+    });
+  </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 import re
-from repositories.usuarios import UsuarioRepository
+from data.repositories.usuarios import UsuarioRepository
 from db import get_auth_client
 
 class PerfilService:

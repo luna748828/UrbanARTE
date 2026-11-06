@@ -1,6 +1,6 @@
 import re
 from db import get_auth_client, get_admin_client
-from repositories.usuarios import UsuarioRepository
+from data.repositories.usuarios import UsuarioRepository
 
 class AuthService:
     @staticmethod

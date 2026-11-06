@@ -1,9 +1,9 @@
 from flask import Flask
 from config import Config
-from routes.auth import bp as auth_bp
-from routes.feed import bp as feed_bp
-from routes.mapa import bp as mapa_bp
-from routes.perfil import bp as perfil_bp
+from features.auth.auth import bp as auth_bp
+from features.feed.feed import bp as feed_bp
+from features.mapa.mapa import bp as mapa_bp
+from features.perfil.perfil import bp as perfil_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)

@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from services.auth_service import AuthService
+from features.auth.auth_service import AuthService
 
 bp = Blueprint("auth", __name__)
 
@@ -24,7 +24,7 @@ def registro():
         if exito:
             return redirect(url_for("auth.login"))
 
-    return render_template("registro.html")
+    return render_template("auth/registro.html")
 
 @bp.route("/login", methods=["GET", "POST"])
 def login():
@@ -35,14 +35,14 @@ def login():
         perfil, error = AuthService.iniciar_sesion(correo, clave)
         if error:
             flash(error)
-            return render_template("login.html")
+            return render_template("auth/login.html")
 
         session["usuario_id"] = perfil["id"]
         session["nombre_usuario"] = perfil["nombre_usuario"]
         session["rol"] = perfil["rol"]
         return redirect(url_for("feed.index"))
 
-    return render_template("login.html")
+    return render_template("auth/login.html")
 
 @bp.route("/logout")
 def logout():
@@ -53,7 +53,7 @@ def logout():
 @bp.route("/cuenta")
 @login_required
 def cuenta():
-    return render_template("cuenta.html")
+    return render_template("perfil/cuenta.html")
 
 @bp.route("/cuenta/desactivar", methods=["POST"])
 @login_required
