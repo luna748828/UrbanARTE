@@ -26,5 +26,5 @@ class UsuarioRepository:
         return [u["nombre_usuario"] for u in res.data] if res.data else []
 
     @staticmethod
-     def eliminar_perfil(usuario_id):
-     return db.table("usuarios").delete().eq("id", usuario_id).execute()
+    def eliminar_perfil(usuario_id):
+        return db.table("usuarios").delete().eq("id", usuario_id).execute()
