@@ -1,43 +1,149 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mi cuenta · UrbanARTE</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    body { background:#0f0f14; color:#f2f0ea; font-family:system-ui,sans-serif; margin:0; }
-    .caja { max-width:380px; margin:60px auto; padding:0 16px 120px; }
-    h1 { color:#ffb703; font-style:italic; text-align:center; }
-    form { display:flex; flex-direction:column; gap:12px; }
-    input, button, .boton { padding:12px; font-size:1rem; border-radius:10px; border:1px solid #333; }
-    input { background:#1b1b24; color:#f2f0ea; }
-    button, .boton { background:#7b5cff; color:#fff; border:0; cursor:pointer; text-align:center; text-decoration:none; display:block; }
-    button.peligro { background:#ff3d6e; }
-    .aviso { background:#2a1c24; border-left:4px solid #ff3d6e; padding:10px; border-radius:6px; }
-    .zona { border:1px solid #3a2530; border-radius:12px; padding:16px; margin-top:28px; }
-    small { color:#a9a6b3; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Cuenta - UrbanARTE</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #0f0f13;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .profile-card {
+            background-color: #1a1a24;
+            border: 1px solid #2a2a3a;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        .btn-purple {
+            background-color: #7c4dff;
+            color: #fff;
+            border: none;
+            font-weight: 600;
+        }
+        .btn-purple:hover {
+            background-color: #651fff;
+            color: #fff;
+        }
+        .text-accent {
+            color: #ffb74d;
+        }
+        .form-control {
+            background-color: #12121a;
+            border: 1px solid #2e2e42;
+            color: #fff;
+        }
+        .form-control:focus {
+            background-color: #161622;
+            border-color: #7c4dff;
+            color: #fff;
+            box-shadow: 0 0 0 0.25rem rgba(124, 77, 255, 0.25);
+        }
+        .badge-role {
+            background-color: #2a2a3d;
+            color: #ffb74d;
+            border: 1px solid #ffb74d;
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
-  <div class="caja">
-    <h1>UrbanARTE</h1>
-    <h2>Mi cuenta</h2>
-    <p>Sesión iniciada como <strong>@{{ session.get('nombre_usuario') }}</strong></p>
-    {% for m in get_flashed_messages() %}<p class="aviso">{{ m }}</p>{% endfor %}
 
-    <a class="boton" href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+    {% include '_nav.html' %}
 
-    <div class="zona">
-      <h3>Dar de baja mi cuenta</h3>
-      <p><small>Se eliminará tu acceso y tus datos personales. Para volver a UrbanARTE tendrás que crear una cuenta nueva. Para confirmar, escribe tu contraseña.</small></p>
-      <form method="post" action="{{ url_for('auth.desactivar_cuenta') }}"
-            onsubmit="return confirm('¿Seguro? Esta acción no se puede deshacer.');">
-        <input name="contrasena" type="password" placeholder="Tu contraseña" required>
-        <button class="peligro">Dar de baja mi cuenta</button>
-      </form>
-    git</div>
-  </div>
-  {% include "_nav.html" %}
+    <div class="container my-5" style="max-width: 900px;">
+        
+        <!-- Header -->
+        <div class="d-flex align-items-center justify-content-between mb-4 border-bottom border-secondary pb-3">
+            <div>
+                <h2 class="fw-bold m-0 text-white">Configuración de Cuenta</h2>
+                <p class="text-secondary small m-0">Administra la información de tu perfil y la seguridad de tu acceso</p>
+            </div>
+            <span class="badge badge-role px-3 py-2 rounded-pill fs-6">
+                {{ perfil.rol|capitalize if perfil else 'Artista' }}
+            </span>
+        </div>
+
+        <!-- Mensajes Flash -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="alert alert-dark border-primary text-light alert-dismissible fade show mb-4" role="alert">
+                        <strong>Aviso:</strong> {{ msg }}
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row g-4">
+            
+            <!-- Columna Izquierda: Vista previa de la cuenta -->
+            <div class="col-md-5">
+                <div class="profile-card p-4 h-100">
+                    <h5 class="text-accent fw-bold mb-3">Información del Perfil</h5>
+                    
+                    <div class="mb-3">
+                        <small class="text-secondary d-block">Usuario</small>
+                        <span class="fs-5 fw-semibold text-white">
+                            @{{ perfil.nombre_usuario if perfil else session.get('usuario_nombre') }}
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-secondary d-block">Correo Electrónico</small>
+                        <span class="text-light">
+                            {{ perfil.correo if perfil else 'No disponible' }}
+                        </span>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-secondary d-block">Biografía</small>
+                        <p class="text-light fst-italic small bg-dark p-3 rounded-3 border border-secondary mt-1">
+                            {{ perfil.biografia if perfil and perfil.biografia else 'Sin biografía ingresada aún.' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Formularios de Edición -->
+            <div class="col-md-7">
+                
+                <!-- 6.2 Edición de datos personales -->
+                <div class="profile-card p-4 mb-4">
+                    <h5 class="text-accent fw-bold mb-3">Editar Datos Personales</h5>
+                    <form action="{{ url_for('perfil.editar_perfil') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Nombre de Usuario</label>
+                            <input type="text" name="nombre_usuario" class="form-control" value="{{ perfil.nombre_usuario if perfil else session.get('usuario_nombre') }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Biografía</label>
+                            <textarea name="biografia" class="form-control" rows="3" placeholder="Cuéntanos un poco sobre ti o tus obras...">{{ perfil.biografia if perfil and perfil.biografia else '' }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-purple w-100 py-2">Guardar Cambios</button>
+                    </form>
+                </div>
+
+                <!-- 6.4 Cambio de contraseña -->
+                <div class="profile-card p-4">
+                    <h5 class="text-accent fw-bold mb-3">Cambiar Contraseña</h5>
+                    <form action="{{ url_for('perfil.cambiar_clave') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label text-secondary small">Nueva Contraseña</label>
+                            <input type="password" name="nueva_clave" class="form-control" placeholder="Mínimo 8 caracteres, 1 número y 1 símbolo" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline-warning w-100 py-2">Actualizar Contraseña</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

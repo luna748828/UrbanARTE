@@ -8,7 +8,7 @@ class UsuarioRepository:
 
     @staticmethod
     def buscar_por_id(usuario_id):
-        res = db.table("usuarios").select("id, nombre_usuario, rol, activo, correo").eq("id", usuario_id).execute()
+        res = db.table("usuarios").select("*").eq("id", usuario_id).execute()
         return res.data[0] if res.data else None
 
     @staticmethod
@@ -24,6 +24,10 @@ class UsuarioRepository:
     def obtener_recientes(limite=8):
         res = db.table("usuarios").select("nombre_usuario").order("creado_en", desc=True).limit(limite).execute()
         return [u["nombre_usuario"] for u in res.data] if res.data else []
+
+    @staticmethod
+    def actualizar_perfil(usuario_id, datos):
+        return db.table("usuarios").update(datos).eq("id", usuario_id).execute()
 
     @staticmethod
     def eliminar_perfil(usuario_id):
