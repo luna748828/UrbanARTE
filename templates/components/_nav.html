@@ -1,7 +1,7 @@
 <nav class="bottombar">
-  <a href="/">🏠</a>
-  <a href="#">🔍</a>
-  <a href="{{ url_for('feed.nueva_publicacion') }}">➕</a>
-  <a href="/mapa">🗺️</a>
-  <a href="{{ url_for('auth.cuenta') if session.get('usuario_id') else url_for('auth.login') }}">👤</a>
+    <a href="/">🏠</a>
+    <a href="{{ url_for('foros.listar') if 'foros.listar' in endpoints else '#' }}">💬</a>
+    <a href="{{ url_for('feed.nueva_publicacion') if 'feed.nueva_publicacion' in endpoints else '#' }}">➕</a>
+    <a href="{{ url_for('mapa.ver_mapa') }}">🗺️</a>
+    <a href="{{ url_for('perfil.ver_perfil') }}">👤</a>
 </nav>
