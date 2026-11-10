@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foros - UrbanARTE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% include "foros/_estilos.html" %}
+</head>
+<body>
+  <header>
+    <h1 class="logo">UrbanARTE</h1>
+    <p class="lema">foros</p>
+  </header>
+
+  <main class="foros">
+    {% for m in get_flashed_messages() %}<p class="aviso">{{ m }}</p>{% endfor %}
+
+    {% for f in foros %}
+      <a class="tarjeta" href="{{ url_for('foros.ver_foro', foro_id=f.id) }}">
+        <h2>{{ f.nombre }}</h2>
+        <span class="meta">{{ f.total_temas }} {{ 'tema' if f.total_temas == 1 else 'temas' }}</span>
+      </a>
+    {% else %}
+      <p class="vacio">Todavía no hay foros.</p>
+    {% endfor %}
+  </main>
+
+  {% include "components/_nav.html" %}
+</body>
+</html>

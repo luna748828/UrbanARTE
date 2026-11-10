@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ foro.nombre }} - UrbanARTE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% include "foros/_estilos.html" %}
+</head>
+<body>
+  <header>
+    <h1 class="logo">UrbanARTE</h1>
+    <p class="lema">foro · {{ foro.nombre }}</p>
+  </header>
+
+  <main class="foros">
+    <a class="volver" href="{{ url_for('foros.listar') }}">← Todos los foros</a>
+
+    {% for m in get_flashed_messages() %}<p class="aviso">{{ m }}</p>{% endfor %}
+
+    <form class="tarjeta" method="post" action="{{ url_for('foros.crear_tema', foro_id=foro.id) }}">
+      <h3>Crear un tema</h3>
+      <input type="text" name="titulo" placeholder="Título del tema" maxlength="120" value="{{ titulo or '' }}" required>
+      <textarea name="contenido" rows="4" maxlength="2000" placeholder="¿Qué quieres compartir o preguntar?" required>{{ contenido or '' }}</textarea>
+      <button type="submit">Publicar tema</button>
+    </form>
+
+    {% for t in temas %}
+      <a class="tarjeta" href="{{ url_for('foros.ver_tema', foro_id=foro.id, tema_id=t.id) }}">
+        <h3>{{ t.titulo }}</h3>
+        <span class="meta">por {{ t.autor }} · {{ t.fecha }} · {{ t.total_respuestas }} {{ 'respuesta' if t.total_respuestas == 1 else 'respuestas' }}</span>
+        <p class="texto">{{ t.resumen }}</p>
+      </a>
+    {% else %}
+      <p class="vacio">Aún no hay temas en este foro. ¡Crea el primero!</p>
+    {% endfor %}
+  </main>
+
+  {% include "components/_nav.html" %}
+</body>
+</html>

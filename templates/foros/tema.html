@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ tema.titulo }} - UrbanARTE</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  {% include "foros/_estilos.html" %}
+</head>
+<body>
+  <header>
+    <h1 class="logo">UrbanARTE</h1>
+    <p class="lema">foro · {{ foro.nombre }}</p>
+  </header>
+
+  <main class="foros">
+    <a class="volver" href="{{ url_for('foros.ver_foro', foro_id=foro.id) }}">← {{ foro.nombre }}</a>
+
+    {% for m in get_flashed_messages() %}<p class="aviso">{{ m }}</p>{% endfor %}
+
+    <article class="tarjeta">
+      <h2>{{ tema.titulo }}</h2>
+      <span class="meta">por {{ tema.autor }} · {{ tema.fecha }}</span>
+      <p class="texto">{{ tema.contenido }}</p>
+    </article>
+
+    <h3>Respuestas ({{ tema.respuestas|length }})</h3>
+    {% for r in tema.respuestas %}
+      <article class="tarjeta respuesta">
+        <span class="meta">{{ r.autor }} · {{ r.fecha }}</span>
+        <p class="texto">{{ r.contenido }}</p>
+      </article>
+    {% else %}
+      <p class="vacio">Nadie ha respondido todavía.</p>
+    {% endfor %}
+
+    <form class="tarjeta" method="post"
+          action="{{ url_for('foros.responder', foro_id=foro.id, tema_id=tema.id) }}">
+      <textarea name="contenido" rows="3" maxlength="1000" placeholder="Escribe tu respuesta" required>{{ borrador or '' }}</textarea>
+      <button type="submit">Responder</button>
+    </form>
+  </main>
+
+  {% include "components/_nav.html" %}
+</body>
+</html>
