@@ -13,6 +13,7 @@ from features.feed.routes import bp as feed_bp
 from features.mapa.routes import bp as mapa_bp
 from features.perfil.routes import bp as perfil_bp
 from features.foros.routes import bp as foros_bp
+from features.eventos.routes import bp as eventos_bp
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -23,6 +24,7 @@ app.register_blueprint(feed_bp)
 app.register_blueprint(mapa_bp)
 app.register_blueprint(perfil_bp)
 app.register_blueprint(foros_bp)
+app.register_blueprint(eventos_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)

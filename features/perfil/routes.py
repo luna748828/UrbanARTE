@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from features.auth.auth import login_required
+from features.auth.routes import login_required
 from features.perfil.perfil_service import PerfilService
 
 bp = Blueprint("perfil", __name__, url_prefix="/cuenta")

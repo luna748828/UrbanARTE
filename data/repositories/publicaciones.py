@@ -58,3 +58,29 @@ class PublicacionRepository:
             "imagen": imagen,
         }).execute()
         return res.data[0]["id"]
+
+    @staticmethod
+    def obtener_pendientes_de_usuario(usuario_id):
+        pubs = (
+            db.table("publicaciones")
+            .select("id, descripcion, ubicaciones(id)")
+            .eq("usuario_id", usuario_id)
+            .order("fecha_publicacion", desc=True)
+            .execute()
+        ).data
+        return [
+            {"id": p["id"], "titulo": (p["descripcion"] or "Sin descripción")[:50]}
+            for p in pubs
+            if not p.get("ubicaciones")
+        ]
+
+    @staticmethod
+    def es_del_usuario(publicacion_id, usuario_id):
+        r = (
+            db.table("publicaciones")
+            .select("id")
+            .eq("id", publicacion_id)
+            .eq("usuario_id", usuario_id)
+            .execute()
+        )
+        return bool(r.data)

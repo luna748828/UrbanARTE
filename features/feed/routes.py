@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from features.auth.auth import login_required
+from features.auth.routes import login_required
 from features.feed.feed_service import FeedService
 from data.repositories.publicaciones import PublicacionRepository
 from data.repositories.ubicaciones import UbicacionRepository

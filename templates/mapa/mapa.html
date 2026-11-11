@@ -2,113 +2,207 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mapa - UrbanARTE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa · UrbanARTE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
-    #mapa { height: 70vh; width: 100%; border-radius: 12px; }
-    .panel { margin: 12px 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-    .panel input { padding: 8px; }
-    .panel button { padding: 8px 14px; cursor: pointer; }
-    .popup img { max-width: 160px; display: block; margin-top: 6px; }
+    .bottombar { z-index: 2000; }
+    .bottombar a { text-decoration: none; color: inherit; }
+
+    #mapa {
+      height: 48vh; min-height: 320px; isolation: isolate;
+      border-radius: 14px; border: 2px solid #ffffff22;
+      box-shadow: 8px 8px 0 #7b5cff;
+    }
+
+    .panel {
+      margin-top: 30px; padding: 18px; border-radius: 14px;
+      background: #17171d; border: 1px solid #ffffff22;
+      box-shadow: 8px 8px 0 #ff3d6e;
+      display: grid; gap: 12px;
+    }
+    .panel h2 { margin: 0; font-family: "Playfair Display", serif; font-style: italic; font-size: 26px; }
+    .paso { margin: 4px 0 0; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; opacity: .65; }
+
+    .panel select, .panel input {
+      width: 100%; padding: 12px; border-radius: 8px; font: inherit;
+      background: #0d0d10; color: #f3efe6; border: 1px solid #ffffff33;
+    }
+    .panel select:focus, .panel input:focus { outline: 2px solid #ffb703; }
+
+    .coords {
+      padding: 10px 12px; border-radius: 8px; font-size: 14px;
+      background: #ffffff0d; border: 1px dashed #ffffff44;
+    }
+    .coords.listo { border-style: solid; border-color: #2ec4b6; color: #2ec4b6; }
+
+    .panel button, .panel .enlace {
+      padding: 13px; border: 0; border-radius: 8px; font: inherit; font-weight: 700;
+      cursor: pointer; text-align: center; text-decoration: none;
+    }
+    .principal { background: linear-gradient(90deg, #ff3d6e, #ffb703); color: #0d0d10; }
+    .secundario { background: transparent; color: #f3efe6; border: 1px solid #ffffff55 !important; }
+    .panel button:disabled { opacity: .4; cursor: not-allowed; }
+
+    .mensaje { margin: 0; min-height: 20px; font-size: 14px; }
+    .mensaje.ok { color: #2ec4b6; }
+    .mensaje.error { color: #ff6b8a; }
+    .vacio-panel { margin: 0; font-size: 16px; opacity: .85; }
   </style>
 </head>
 <body>
-  <div class="panel">
-    <input id="publicacion" type="number" placeholder="ID de publicación">
-    <input id="direccion" type="text" placeholder="Dirección aproximada (opcional)">
-    <input id="lat" type="text" placeholder="Latitud" readonly>
-    <input id="lng" type="text" placeholder="Longitud" readonly>
-    <button id="guardar">Guardar ubicación</button>
-    <span id="estado"></span>
-  </div>
+  <header>
+    <h1 class="logo">UrbanARTE</h1>
+    <p class="lema">el mapa del arte urbano</p>
+  </header>
 
-  <div id="mapa"></div>
+  <main>
+    <div id="mapa"></div>
+
+    <section class="panel">
+      <h2>📍 Ubica tu obra</h2>
+
+      {% if pendientes %}
+        <p class="paso">1 · Elige una de tus publicaciones</p>
+        <select id="publicacion">
+          {% for p in pendientes %}
+            <option value="{{ p.id }}">{{ p.titulo }}</option>
+          {% endfor %}
+        </select>
+
+        <p class="paso">2 · Toca el mapa donde está tu obra</p>
+        <button type="button" id="btn-gps" class="secundario">🎯 Usar mi ubicación actual</button>
+        <div class="coords" id="coords">Aún no has marcado ningún lugar</div>
+        <input id="direccion" type="text" placeholder="Barrio o dirección (se llena solo, puedes editarlo)">
+
+        <p class="paso">3 · Guárdala</p>
+        <button type="button" id="guardar" class="principal" disabled>Guardar ubicación</button>
+        <p id="mensaje" class="mensaje"></p>
+      {% else %}
+        <p class="vacio-panel">Todas tus publicaciones ya tienen ubicación ✨</p>
+        <a class="principal enlace" href="/">Volver al feed</a>
+      {% endif %}
+    </section>
+  </main>
+
+  {% include "components/_nav.html" %}
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
-    const mapa = L.map("mapa").setView([4.6097, -74.0817], 12);
+    const mapa = L.map("mapa").setView([4.711, -74.0721], 12);
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
-      attribution: "&copy; OpenStreetMap contributors"
+      attribution: "&copy; Colaboradores de OpenStreetMap"
     }).addTo(mapa);
 
-    const estado = document.getElementById("estado");
-    let marcadorTemporal = null;
-
-    mapa.on("click", (e) => {
-      document.getElementById("lat").value = e.latlng.lat.toFixed(6);
-      document.getElementById("lng").value = e.latlng.lng.toFixed(6);
-      if (marcadorTemporal) marcadorTemporal.setLatLng(e.latlng);
-      else marcadorTemporal = L.marker(e.latlng).addTo(mapa);
-    });
-
-    function agregarMarcador(u) {
-      const pub = u.publicaciones || {};
-      const usuario = (pub.usuarios || {}).nombre_usuario;
-      const div = document.createElement("div");
-      div.className = "popup";
-
-      if (usuario) {
-        const autor = document.createElement("strong");
-        autor.textContent = usuario;
-        div.append(autor);
-      }
-      if (pub.descripcion) {
-        const desc = document.createElement("div");
-        desc.textContent = pub.descripcion;
-        div.append(desc);
-      }
-      if (u.direccion_aprox) {
-        const dir = document.createElement("small");
-        dir.textContent = u.direccion_aprox;
-        div.append(dir);
-      }
-      if (pub.imagen && /^(https?:)?\//.test(pub.imagen)) {
-        const img = document.createElement("img");
-        img.src = pub.imagen;
-        div.append(img);
-      }
-      L.marker([u.latitud, u.longitud]).addTo(mapa).bindPopup(div);
+    function esc(t) {
+      const d = document.createElement("div");
+      d.textContent = t ?? "";
+      return d.innerHTML;
     }
 
-    async function cargarUbicaciones() {
-      const resp = await fetch("/api/ubicaciones");
-      if (!resp.ok) { estado.textContent = "No se pudieron cargar las ubicaciones"; return; }
-      (await resp.json()).forEach(agregarMarcador);
-    }
+    // Pines de todas las ubicaciones guardadas
+    fetch("/api/ubicaciones").then(r => r.json()).then(lista => {
+      lista.forEach(u => {
+        const pub = u.publicaciones || {};
+        const autor = (pub.usuarios || {}).nombre_usuario || "anónimo";
+        const foto = pub.imagen
+          ? `<img src="${esc(pub.imagen)}" style="width:160px;border-radius:6px;display:block;margin-bottom:6px">`
+          : "";
+        L.marker([u.latitud, u.longitud]).addTo(mapa).bindPopup(
+          `${foto}<strong>${esc(autor)}</strong><br>${esc(pub.descripcion)}<br><small>📍 ${esc(u.direccion_aprox)}</small>`
+        );
+      });
+    }).catch(() => {});
 
-    document.getElementById("guardar").addEventListener("click", async () => {
-      const publicacion_id = document.getElementById("publicacion").value;
-      const direccion_aprox = document.getElementById("direccion").value;
-      const latitud = document.getElementById("lat").value;
-      const longitud = document.getElementById("lng").value;
+    // Formulario (solo existe si el usuario tiene publicaciones sin ubicación)
+    const guardar = document.getElementById("guardar");
+    if (guardar) {
+      const select = document.getElementById("publicacion");
+      const coordsBox = document.getElementById("coords");
+      const direccion = document.getElementById("direccion");
+      const mensaje = document.getElementById("mensaje");
+      let lat = null, lng = null, pin = null, direccionManual = false;
 
-      if (!publicacion_id || !latitud || !longitud) {
-        estado.textContent = "Escribe el ID de la publicación y haz clic en el mapa";
-        return;
+      direccion.addEventListener("input", () => { direccionManual = true; });
+
+      async function barrioDe(la, lo) {
+        try {
+          const r = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=16&accept-language=es&lat=${la}&lon=${lo}`
+          );
+          const a = (await r.json()).address || {};
+          return a.neighbourhood || a.suburb || a.quarter || a.city_district || a.city || "";
+        } catch (e) { return ""; }
       }
 
-      const resp = await fetch("/api/ubicaciones", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ publicacion_id, direccion_aprox, latitud, longitud })
+      async function poner(la, lo) {
+        lat = la; lng = lo;
+        if (pin) pin.setLatLng([la, lo]);
+        else pin = L.circleMarker([la, lo], {
+          radius: 11, color: "#fff", weight: 3, fillColor: "#ff3d6e", fillOpacity: 1
+        }).addTo(mapa);
+
+        coordsBox.textContent = `Lugar marcado ✔  (${la.toFixed(5)}, ${lo.toFixed(5)})`;
+        coordsBox.classList.add("listo");
+        guardar.disabled = false;
+        mensaje.textContent = "";
+
+        if (!direccionManual) {
+          const barrio = await barrioDe(la, lo);
+          if (barrio && !direccionManual) direccion.value = barrio;
+        }
+      }
+
+      mapa.on("click", (e) => poner(e.latlng.lat, e.latlng.lng));
+
+      document.getElementById("btn-gps").addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          mensaje.className = "mensaje error";
+          mensaje.textContent = "Tu navegador no permite usar la ubicación.";
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (p) => { mapa.setView([p.coords.latitude, p.coords.longitude], 16); poner(p.coords.latitude, p.coords.longitude); },
+          () => { mensaje.className = "mensaje error"; mensaje.textContent = "No se pudo obtener tu ubicación. Toca el mapa."; }
+        );
       });
 
-      if (resp.ok) {
-        estado.textContent = "Ubicación guardada";
-        if (marcadorTemporal) { mapa.removeLayer(marcadorTemporal); marcadorTemporal = null; }
-        document.getElementById("lat").value = "";
-        document.getElementById("lng").value = "";
-        document.querySelectorAll(".leaflet-marker-icon").forEach(m => m.remove());
-        cargarUbicaciones();
-      } else {
-        const err = await resp.json().catch(() => ({}));
-        estado.textContent = err.error || "Error al guardar";
-      }
-    });
-
-    cargarUbicaciones();
+      guardar.addEventListener("click", async () => {
+        guardar.disabled = true;
+        mensaje.className = "mensaje";
+        mensaje.textContent = "Guardando…";
+        try {
+          const r = await fetch("/api/ubicaciones", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              publicacion_id: Number(select.value),
+              direccion_aprox: direccion.value.trim() || null,
+              latitud: lat,
+              longitud: lng
+            })
+          });
+          const d = await r.json().catch(() => ({}));
+          if (r.ok) {
+            mensaje.className = "mensaje ok";
+            mensaje.textContent = "¡Ubicación guardada! 🎉";
+            setTimeout(() => location.reload(), 900);
+          } else {
+            mensaje.className = "mensaje error";
+            mensaje.textContent = d.error || "No se pudo guardar.";
+            guardar.disabled = false;
+          }
+        } catch (e) {
+          mensaje.className = "mensaje error";
+          mensaje.textContent = "Error de conexión. Intenta de nuevo.";
+          guardar.disabled = false;
+        }
+      });
+    }
   </script>
 </body>
 </html>

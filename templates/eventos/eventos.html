@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nuevo evento - UrbanARTE</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .nuevo { max-width: 560px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .nuevo textarea, .nuevo input { padding: 10px; font: inherit; width: 100%; box-sizing: border-box; }
+    .nuevo button { padding: 12px; cursor: pointer; font: inherit; }
+    .fila { display: flex; gap: 10px; }
+    #mapa { height: 300px; border-radius: 12px; }
+    .aviso { color: #ff3d6e; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 class="logo">UrbanARTE</h1>
+    <p class="lema">nuevo evento</p>
+  </header>
+
+  <form class="nuevo" method="POST">
+    {% for m in get_flashed_messages() %}<p class="aviso">{{ m }}</p>{% endfor %}
+
+    <input type="text" name="nombre" maxlength="100" placeholder="Nombre del evento" value="{{ form.get('nombre', '') }}" required>
+    <textarea name="descripcion" rows="4" placeholder="Descripción del evento" required>{{ form.get('descripcion', '') }}</textarea>
+
+    <div class="fila">
+      <input type="date" name="fecha" value="{{ form.get('fecha', '') }}" required>
+      <input type="time" name="hora" value="{{ form.get('hora', '') }}" required>
+    </div>
+
+    <input type="text" name="direccion" placeholder="Dirección aproximada (opcional)" value="{{ form.get('direccion', '') }}">
+
+    <label>Toca el mapa para marcar dónde será (opcional):</label>
+    <div id="mapa"></div>
+    <input type="hidden" name="lat" id="lat" value="{{ form.get('lat', '') }}">
+    <input type="hidden" name="lng" id="lng" value="{{ form.get('lng', '') }}">
+
+    <button type="submit">Crear evento</button>
+    <a href="{{ url_for('eventos.lista') }}">Cancelar</a>
+  </form>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const mapa = L.map("mapa").setView([4.6097, -74.0817], 12);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(mapa);
+
+    let marcador = null;
+
+    function poner(latlng) {
+      document.getElementById("lat").value = latlng.lat.toFixed(6);
+      document.getElementById("lng").value = latlng.lng.toFixed(6);
+      if (marcador) marcador.setLatLng(latlng);
+      else marcador = L.marker(latlng).addTo(mapa);
+    }
+
+    mapa.on("click", (e) => poner(e.latlng));
+
+    const lat0 = parseFloat(document.getElementById("lat").value);
+    const lng0 = parseFloat(document.getElementById("lng").value);
+    if (!isNaN(lat0) && !isNaN(lng0)) {
+      poner({ lat: lat0, lng: lng0 });
+      mapa.setView([lat0, lng0], 15);
+    }
+  </script>
+</body>
+</html>

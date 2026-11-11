@@ -1,5 +1,5 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
-from features.auth.auth import login_required
+from features.auth.routes import login_required
 from features.foros.foros_service import ForoService
 
 bp = Blueprint("foros", __name__, url_prefix="/foros")

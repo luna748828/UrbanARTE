@@ -29,3 +29,10 @@ class FeedService:
             longitud=datos["longitud"],
             direccion_aprox=datos.get("direccion_aprox")
         )
+    @staticmethod
+    def obtener_pendientes_de_usuario(usuario_id):
+        return PublicacionRepository.obtener_pendientes_de_usuario(usuario_id)
+
+    @staticmethod
+    def publicacion_es_del_usuario(publicacion_id, usuario_id):
+        return PublicacionRepository.es_del_usuario(publicacion_id, usuario_id)
