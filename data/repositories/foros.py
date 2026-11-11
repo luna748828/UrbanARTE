@@ -77,7 +77,7 @@ class ForoRepository:
         try:
             res = (
                 db.table("mensajes")
-                .select("id, foro_id, titulo, contenido, fecha, usuarios(nombre_usuario)")
+                .select("id, foro_id, usuario_id, titulo, contenido, fecha, usuarios(nombre_usuario)")
                 .eq("id", tema_id)
                 .eq("foro_id", foro_id)
                 .is_("mensaje_padre_id", "null")
@@ -94,7 +94,7 @@ class ForoRepository:
         try:
             return (
                 db.table("mensajes")
-                .select("id, contenido, fecha, usuarios(nombre_usuario)")
+                .select("id, usuario_id, contenido, fecha, usuarios(nombre_usuario)")
                 .eq("mensaje_padre_id", tema_id)
                 .order("fecha")
                 .execute()
@@ -123,3 +123,38 @@ class ForoRepository:
             "contenido": contenido,
         }).execute()
         return res.data[0]["id"]
+
+    @staticmethod
+    def obtener_respuesta(tema_id, respuesta_id):
+        """Una respuesta, solo si pertenece a ese tema."""
+        try:
+            res = (
+                db.table("mensajes")
+                .select("id, usuario_id, contenido")
+                .eq("id", respuesta_id)
+                .eq("mensaje_padre_id", tema_id)
+                .limit(1)
+                .execute()
+            )
+        except Exception as e:
+            print("Error cargando la respuesta:", e)
+            return None
+        return res.data[0] if res.data else None
+
+    @staticmethod
+    def actualizar_tema(tema_id, titulo, contenido):
+        db.table("mensajes").update({"titulo": titulo, "contenido": contenido}).eq("id", tema_id).execute()
+
+    @staticmethod
+    def actualizar_respuesta(respuesta_id, contenido):
+        db.table("mensajes").update({"contenido": contenido}).eq("id", respuesta_id).execute()
+
+    @staticmethod
+    def eliminar_tema(tema_id):
+        # Primero sus respuestas y luego el tema
+        db.table("mensajes").delete().eq("mensaje_padre_id", tema_id).execute()
+        db.table("mensajes").delete().eq("id", tema_id).execute()
+
+    @staticmethod
+    def eliminar_respuesta(respuesta_id):
+        db.table("mensajes").delete().eq("id", respuesta_id).execute()

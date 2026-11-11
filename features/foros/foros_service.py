@@ -72,18 +72,25 @@ class ForoService:
         return temas
 
     @staticmethod
-    def obtener_tema(foro_id, tema_id):
+    def obtener_tema(foro_id, tema_id, usuario_actual=None):
+        """El tema con sus respuestas. 'es_mio' indica si lo escribió usuario_actual."""
         t = ForoRepository.obtener_tema(foro_id, tema_id)
         if not t:
             return None
+
+        def es_mio(fila):
+            return usuario_actual is not None and fila.get("usuario_id") == usuario_actual
+
         return {
             "id": t["id"],
             "titulo": t["titulo"] or "(sin título)",
             "contenido": t["contenido"],
             "autor": _autor(t),
             "fecha": _fecha(t.get("fecha")),
+            "es_mio": es_mio(t),
             "respuestas": [
-                {"id": r["id"], "contenido": r["contenido"], "autor": _autor(r), "fecha": _fecha(r.get("fecha"))}
+                {"id": r["id"], "contenido": r["contenido"], "autor": _autor(r),
+                 "fecha": _fecha(r.get("fecha")), "es_mio": es_mio(r)}
                 for r in ForoRepository.obtener_respuestas(tema_id)
             ],
         }
@@ -132,3 +139,90 @@ class ForoService:
             print("Error creando la respuesta:", e)
             return False, "No se pudo publicar la respuesta."
         return True, "Respuesta publicada."
+
+    # ---------- editar y eliminar (solo quien lo escribió) ----------
+
+    @staticmethod
+    def editar_tema(foro_id, tema_id, usuario_id, titulo, contenido):
+        """Devuelve (exito, mensaje)."""
+        titulo = (titulo or "").strip()
+        contenido = (contenido or "").strip()
+
+        tema = ForoRepository.obtener_tema(foro_id, tema_id)
+        if not tema:
+            return False, "Ese tema no existe."
+        if tema.get("usuario_id") != usuario_id:
+            return False, "Solo quien escribió el tema puede editarlo."
+        if len(titulo) < TITULO_MIN:
+            return False, f"El título debe tener al menos {TITULO_MIN} caracteres."
+        if len(titulo) > TITULO_MAX:
+            return False, f"El título no puede pasar de {TITULO_MAX} caracteres."
+        if not contenido:
+            return False, "Escribe el contenido del tema."
+        if len(contenido) > TEMA_MAX:
+            return False, f"El contenido no puede pasar de {TEMA_MAX} caracteres."
+
+        try:
+            ForoRepository.actualizar_tema(tema_id, titulo, contenido)
+        except Exception as e:
+            print("Error editando el tema:", e)
+            return False, "No se pudo guardar el cambio."
+        return True, "Tema actualizado."
+
+    @staticmethod
+    def eliminar_tema(foro_id, tema_id, usuario_id):
+        """Devuelve (exito, mensaje). Borra también las respuestas del tema."""
+        tema = ForoRepository.obtener_tema(foro_id, tema_id)
+        if not tema:
+            return False, "Ese tema no existe."
+        if tema.get("usuario_id") != usuario_id:
+            return False, "Solo quien escribió el tema puede eliminarlo."
+
+        try:
+            ForoRepository.eliminar_tema(tema_id)
+        except Exception as e:
+            print("Error eliminando el tema:", e)
+            return False, "No se pudo eliminar el tema."
+        return True, "Tema eliminado."
+
+    @staticmethod
+    def editar_respuesta(foro_id, tema_id, respuesta_id, usuario_id, contenido):
+        """Devuelve (exito, mensaje)."""
+        contenido = (contenido or "").strip()
+
+        if not ForoRepository.obtener_tema(foro_id, tema_id):
+            return False, "Ese tema no existe."
+        respuesta = ForoRepository.obtener_respuesta(tema_id, respuesta_id)
+        if not respuesta:
+            return False, "Esa respuesta no existe."
+        if respuesta.get("usuario_id") != usuario_id:
+            return False, "Solo quien escribió la respuesta puede editarla."
+        if not contenido:
+            return False, "Escribe tu respuesta."
+        if len(contenido) > RESPUESTA_MAX:
+            return False, f"La respuesta no puede pasar de {RESPUESTA_MAX} caracteres."
+
+        try:
+            ForoRepository.actualizar_respuesta(respuesta_id, contenido)
+        except Exception as e:
+            print("Error editando la respuesta:", e)
+            return False, "No se pudo guardar el cambio."
+        return True, "Respuesta actualizada."
+
+    @staticmethod
+    def eliminar_respuesta(foro_id, tema_id, respuesta_id, usuario_id):
+        """Devuelve (exito, mensaje)."""
+        if not ForoRepository.obtener_tema(foro_id, tema_id):
+            return False, "Ese tema no existe."
+        respuesta = ForoRepository.obtener_respuesta(tema_id, respuesta_id)
+        if not respuesta:
+            return False, "Esa respuesta no existe."
+        if respuesta.get("usuario_id") != usuario_id:
+            return False, "Solo quien escribió la respuesta puede eliminarla."
+
+        try:
+            ForoRepository.eliminar_respuesta(respuesta_id)
+        except Exception as e:
+            print("Error eliminando la respuesta:", e)
+            return False, "No se pudo eliminar la respuesta."
+        return True, "Respuesta eliminada."
