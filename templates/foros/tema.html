@@ -16,12 +16,31 @@
   <main class="foros">
     <a class="volver" href="{{ url_for('foros.ver_foro', foro_id=foro.id) }}">← {{ foro.nombre }}</a>
 
-    {% for m in get_flashed_messages() %}<p class="aviso">{{ m }}</p>{% endfor %}
+    {% for categoria, m in get_flashed_messages(with_categories=true) %}
+      <p class="aviso {{ 'ok' if categoria == 'ok' else '' }}">{{ m }}</p>
+    {% endfor %}
 
     <article class="tarjeta">
       <h2>{{ tema.titulo }}</h2>
       <span class="meta">por {{ tema.autor }} · {{ tema.fecha }}</span>
       <p class="texto">{{ tema.contenido }}</p>
+
+      {% if tema.es_mio %}
+      <div class="acciones">
+        <details>
+          <summary>Editar</summary>
+          <form method="post" action="{{ url_for('foros.editar_tema', foro_id=foro.id, tema_id=tema.id) }}">
+            <input type="text" name="titulo" value="{{ tema.titulo }}" maxlength="120" required>
+            <textarea name="contenido" rows="4" maxlength="2000" required>{{ tema.contenido }}</textarea>
+            <button type="submit">Guardar cambios</button>
+          </form>
+        </details>
+        <form method="post" action="{{ url_for('foros.eliminar_tema', foro_id=foro.id, tema_id=tema.id) }}"
+              onsubmit="return confirm('¿Eliminar este tema y todas sus respuestas?');">
+          <button type="submit" class="peligro">Eliminar tema</button>
+        </form>
+      </div>
+      {% endif %}
     </article>
 
     <h3>Respuestas ({{ tema.respuestas|length }})</h3>
@@ -29,6 +48,24 @@
       <article class="tarjeta respuesta">
         <span class="meta">{{ r.autor }} · {{ r.fecha }}</span>
         <p class="texto">{{ r.contenido }}</p>
+
+        {% if r.es_mio %}
+        <div class="acciones">
+          <details>
+            <summary>Editar</summary>
+            <form method="post"
+                  action="{{ url_for('foros.editar_respuesta', foro_id=foro.id, tema_id=tema.id, respuesta_id=r.id) }}">
+              <textarea name="contenido" rows="3" maxlength="1000" required>{{ r.contenido }}</textarea>
+              <button type="submit">Guardar cambios</button>
+            </form>
+          </details>
+          <form method="post"
+                action="{{ url_for('foros.eliminar_respuesta', foro_id=foro.id, tema_id=tema.id, respuesta_id=r.id) }}"
+                onsubmit="return confirm('¿Eliminar esta respuesta?');">
+            <button type="submit" class="peligro">Eliminar</button>
+          </form>
+        </div>
+        {% endif %}
       </article>
     {% else %}
       <p class="vacio">Nadie ha respondido todavía.</p>

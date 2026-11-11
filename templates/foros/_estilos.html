@@ -11,8 +11,16 @@
   .foros textarea, .foros input[type=text] { padding: 10px; font: inherit; width: 100%; box-sizing: border-box;
              border-radius: 10px; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.06); color: inherit; }
   .foros button { padding: 12px; cursor: pointer; font: inherit; border: 0; border-radius: 10px; background: #7b5cff; color: #fff; }
+  .foros button.peligro { background: #ff3d6e; }
   .aviso { color: #ff3d6e; margin: 0; }
+  .aviso.ok { color: #3ddc97; }
   .vacio { opacity: .7; text-align: center; padding: 24px 0; }
   .volver { font-size: .9rem; opacity: .8; }
   .respuesta { margin-left: 12px; border-left: 3px solid #7b5cff; border-radius: 0 14px 14px 0; }
+  .acciones { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; margin-top: 10px; }
+  .acciones details { flex: 1 1 100%; }
+  .acciones summary { cursor: pointer; display: inline-block; padding: 7px 12px; border-radius: 10px;
+                      border: 1px solid rgba(255,255,255,.25); font-size: .9rem; }
+  .acciones details[open] summary { margin-bottom: 10px; }
+  .acciones button { padding: 7px 12px; font-size: .9rem; }
 </style>

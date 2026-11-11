@@ -16,7 +16,9 @@
   <main class="foros">
     <a class="volver" href="{{ url_for('foros.listar') }}">← Todos los foros</a>
 
-    {% for m in get_flashed_messages() %}<p class="aviso">{{ m }}</p>{% endfor %}
+       {% for categoria, m in get_flashed_messages(with_categories=true) %}
+      <p class="aviso {{ 'ok' if categoria == 'ok' else '' }}">{{ m }}</p>
+    {% endfor %}V
 
     <form class="tarjeta" method="post" action="{{ url_for('foros.crear_tema', foro_id=foro.id) }}">
       <h3>Crear un tema</h3>
