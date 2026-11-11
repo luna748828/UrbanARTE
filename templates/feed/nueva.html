@@ -12,6 +12,8 @@
     .nueva button { padding: 12px; cursor: pointer; font: inherit; }
     #mapa { height: 300px; border-radius: 12px; }
     .aviso { color: #ff3d6e; }
+    .nueva label { font-size: 14px; opacity: .85; }
+    #vista-previa { display: none; max-height: 220px; object-fit: cover; border-radius: 10px; }
   </style>
 </head>
 <body>
@@ -20,13 +22,18 @@
     <p class="lema">nueva publicación</p>
   </header>
 
-  <form class="nueva" method="POST">
+  <form class="nueva" method="POST" enctype="multipart/form-data">
     {% with mensajes = get_flashed_messages() %}
       {% for m in mensajes %}<p class="aviso">{{ m }}</p>{% endfor %}
     {% endwith %}
 
     <textarea name="descripcion" rows="4" placeholder="Cuéntanos sobre este arte" required></textarea>
-    <input type="url" name="imagen" placeholder="Enlace de la imagen (https://...)">
+
+    <label>📷 Sube una imagen desde tu dispositivo (opcional)</label>
+    <input type="file" name="imagen_archivo" id="imagen_archivo" accept="image/*">
+    <img id="vista-previa" alt="Vista previa">
+
+    <input type="url" name="imagen" placeholder="o pega el enlace de una imagen (opcional)">
     <input type="text" name="direccion" placeholder="Dirección aproximada (opcional)">
 
     <label>Toca el mapa para marcar dónde está (opcional):</label>
@@ -52,6 +59,18 @@
       document.getElementById("lng").value = e.latlng.lng.toFixed(6);
       if (marcador) marcador.setLatLng(e.latlng);
       else marcador = L.marker(e.latlng).addTo(mapa);
+    });
+
+    // Vista previa de la imagen elegida
+    document.getElementById("imagen_archivo").addEventListener("change", (e) => {
+      const archivo = e.target.files[0];
+      const vista = document.getElementById("vista-previa");
+      if (archivo) {
+        vista.src = URL.createObjectURL(archivo);
+        vista.style.display = "block";
+      } else {
+        vista.style.display = "none";
+      }
     });
   </script>
 </body>

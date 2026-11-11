@@ -1,4 +1,6 @@
 from db import db
+import uuid
+from db import db, get_admin_client
 
 PALETA = ["#ff3d6e", "#ffb703", "#2ec4b6", "#7b5cff", "#ff7a1a", "#3ddc97"]
 
@@ -84,3 +86,30 @@ class PublicacionRepository:
             .execute()
         )
         return bool(r.data)
+
+    @staticmethod
+    def subir_imagen(archivo):
+        """Sube la imagen a Supabase Storage. Devuelve (url, error)."""
+        if not archivo or archivo.filename == "":
+            return None, None  # no eligió ningún archivo
+
+        tipos = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "webp"}
+        ext = tipos.get(archivo.mimetype)
+        if not ext:
+            return None, "Solo se permiten imágenes JPG, PNG o WEBP."
+
+        datos = archivo.read()
+        if len(datos) > 5 * 1024 * 1024:
+            return None, "La imagen pesa más de 5 MB."
+
+        cliente = get_admin_client() or db
+        nombre = f"{uuid.uuid4().hex}.{ext}"
+        try:
+            cliente.storage.from_("publicaciones").upload(
+                nombre, datos, {"content-type": archivo.mimetype}
+            )
+        except Exception as e:
+            print("Error subiendo imagen:", e)
+            return None, "No se pudo subir la imagen."
+
+        return cliente.storage.from_("publicaciones").get_public_url(nombre), None
