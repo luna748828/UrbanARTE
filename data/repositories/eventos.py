@@ -44,3 +44,15 @@ class EventoRepository:
             .execute()
         )
         return res.data
+    
+    @staticmethod
+    def obtener_todos():
+        res = (
+            db.table("eventos")
+            .select("id, nombre, descripcion, fecha_hora, direccion_aprox, "
+                    "latitud, longitud, cupos_disponibles, "
+                    "usuarios!eventos_organizador_id_fkey(nombre_usuario)")
+            .order("fecha_hora", desc=True)
+            .execute()
+        )
+        return res.data
