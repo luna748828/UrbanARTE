@@ -7,7 +7,7 @@ export default function Cabecera() {
         <div className="sub">el arte sale a la calle</div>
         <div className="floor" aria-hidden="true" />
       </div>
-      <div className="mq">✦ nuevos grafitis cada día ✦ jam de muralistas el sábado ✦ sube tu obra y deja tu firma ✦</div>
+      <div className="mq"><span>✦ nuevos grafitis cada día ✦ jam de muralistas el sábado ✦ sube tu obra y deja tu firma ✦</span></div>
     </header>
   );
 }

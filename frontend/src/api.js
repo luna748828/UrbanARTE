@@ -27,6 +27,9 @@ export const logout = () => pedir("/logout", { method: "POST", json: {} });
 // publicaciones
 export const getPublicaciones = () => pedir("/publicaciones");
 export const crearPublicacion = (formData) => pedir("/publicaciones", { form: formData });
+export const getMisPublicaciones = () => pedir("/mis-publicaciones");
+export const editarPublicacion = (id, formData) => pedir(`/publicaciones/${id}`, { method: "PUT", form: formData });
+export const eliminarPublicacion = (id) => pedir(`/publicaciones/${id}`, { method: "DELETE" });
 export const getArtistas = () => pedir("/artistas");
 
 // eventos
@@ -43,6 +46,17 @@ export const crearTema = (foroId, titulo, contenido) => pedir(`/foros/${foroId}/
 export const getTema = (foroId, temaId) => pedir(`/foros/${foroId}/temas/${temaId}`);
 export const responder = (foroId, temaId, contenido) => pedir(`/foros/${foroId}/temas/${temaId}/respuestas`, { json: { contenido } });
 
+export const editarTema = (f, t, titulo, contenido) => pedir(`/foros/${f}/temas/${t}`, { method: "PUT", json: { titulo, contenido } });
+export const eliminarTema = (f, t) => pedir(`/foros/${f}/temas/${t}`, { method: "DELETE" });
+export const editarRespuesta = (f, t, r, contenido) => pedir(`/foros/${f}/temas/${t}/respuestas/${r}`, { method: "PUT", json: { contenido } });
+export const eliminarRespuesta = (f, t, r) => pedir(`/foros/${f}/temas/${t}/respuestas/${r}`, { method: "DELETE" });
+
+// cuenta
+export const cambiarClave = (nueva_clave) => pedir("/cuenta/clave", { json: { nueva_clave } });
+export const desactivarCuenta = (contrasena) => pedir("/cuenta/desactivar", { json: { contrasena } });
+
 // perfil
 export const getPerfil = () => pedir("/perfil");
-export const guardarPerfil = (nombre_usuario, biografia) => pedir("/perfil", { json: { nombre_usuario, biografia } });
+export const guardarPerfil = (nombre_usuario, biografia, tipo_artista) => pedir("/perfil", { json: { nombre_usuario, biografia, tipo_artista } });
+export const subirFotoPerfil = (formData) => pedir("/perfil/foto", { form: formData });
+export const getTiposArtista = () => pedir("/tipos-artista");

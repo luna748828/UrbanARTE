@@ -91,25 +91,34 @@ def logout():
 
 # ---------- publicaciones / grafitis ----------
 
-@bp.route("/publicaciones", methods=["GET"])
-@api_login_required
-def publicaciones():
+def _listar_publicaciones(usuario_id=None):
     # Se lee la tabla directo para tener siempre los mismos nombres de campo.
-    base = "id, usuario_id, descripcion, imagen, fecha_publicacion, usuarios(nombre_usuario)"
-    try:
-        filas = (db.table("publicaciones").select(base + ", artista, categoria")
-                 .order("fecha_publicacion", desc=True).execute().data)
-    except Exception as e:
-        print("Aviso: faltan columnas artista/categoria (corre el SQL):", e)
-        filas = (db.table("publicaciones").select(base)
-                 .order("fecha_publicacion", desc=True).execute().data)
+    # Se prueba con las columnas nuevas y, si aún no existen, con menos.
+    campos = "id, usuario_id, descripcion, imagen, fecha_publicacion"
+    intentos = [
+        campos + ", artista, artista_propio, categoria, usuarios(nombre_usuario, tipo_artista, foto_url)",
+        campos + ", artista, categoria, usuarios(nombre_usuario, tipo_artista, foto_url)",
+        campos + ", artista, categoria, usuarios(nombre_usuario)",
+        campos + ", usuarios(nombre_usuario)",
+    ]
+    filas = None
+    for sel in intentos:
+        try:
+            q = db.table("publicaciones").select(sel)
+            if usuario_id:
+                q = q.eq("usuario_id", usuario_id)
+            filas = q.order("fecha_publicacion", desc=True).execute().data
+            break
+        except Exception as e:
+            print("Aviso: faltan columnas nuevas (corre el SQL):", e)
+    filas = filas or []
 
     ubic = (db.table("ubicaciones")
             .select("publicacion_id, direccion_aprox, latitud, longitud").execute().data)
     ubicaciones = {u["publicacion_id"]: u for u in (ubic or [])}
 
     resultado = []
-    for p in (filas or []):
+    for p in filas:
         p = dict(p)
         p["categoria"] = p.get("categoria") or "GRAFITI"
         u = ubicaciones.get(p["id"])
@@ -118,7 +127,85 @@ def publicaciones():
             p["longitud"] = u.get("longitud")
             p["direccion_aprox"] = u.get("direccion_aprox")
         resultado.append(p)
-    return jsonify(resultado)
+    return resultado
+
+
+@bp.route("/publicaciones", methods=["GET"])
+@api_login_required
+def publicaciones():
+    return jsonify(_listar_publicaciones())
+
+
+@bp.route("/mis-publicaciones", methods=["GET"])
+@api_login_required
+def mis_publicaciones():
+    return jsonify(_listar_publicaciones(session["usuario_id"]))
+
+
+@bp.route("/publicaciones/<int:publicacion_id>", methods=["PUT"])
+@api_login_required
+def editar_publicacion(publicacion_id):
+    if not PublicacionRepository.es_del_usuario(publicacion_id, session["usuario_id"]):
+        return _respuesta(False, "Solo puedes editar tus propias publicaciones", error_code=403)
+
+    descripcion = request.form.get("descripcion", "").strip()
+    if not descripcion:
+        return _respuesta(False, "Escribe una descripción")
+    cambios = {"descripcion": descripcion}
+
+    archivo = request.files.get("imagen_archivo")
+    if archivo and archivo.filename:
+        subir = getattr(PublicacionRepository, "subir_imagen", None)
+        if not subir:
+            return _respuesta(False, "Falta la función subir_imagen en PublicacionRepository", error_code=500)
+        url, error = subir(archivo)
+        if error:
+            return _respuesta(False, error)
+        cambios["imagen"] = url
+
+    try:
+        db.table("publicaciones").update(cambios).eq("id", publicacion_id).execute()
+    except Exception as e:
+        print("Error editando publicación:", e)
+        return _respuesta(False, "No se pudo guardar", error_code=500)
+
+    propio = bool(request.form.get("artista_propio"))
+    artista = session.get("nombre_usuario") if propio else (
+        " ".join((request.form.get("artista") or "").split()).lstrip("@").strip() or None)
+    extra = {"artista": artista, "categoria": (request.form.get("categoria") or "GRAFITI").strip().upper()}
+    try:
+        db.table("publicaciones").update({**extra, "artista_propio": propio}).eq("id", publicacion_id).execute()
+    except Exception as e:
+        print("Aviso: no se guardó artista_propio (¿falta el SQL?):", e)
+        try:
+            db.table("publicaciones").update(extra).eq("id", publicacion_id).execute()
+        except Exception as e2:
+            print("Aviso: no se guardó artista/categoria (¿falta el SQL?):", e2)
+
+    if "direccion" in request.form:
+        try:
+            db.table("ubicaciones").update(
+                {"direccion_aprox": (request.form.get("direccion") or "").strip() or None}
+            ).eq("publicacion_id", publicacion_id).execute()
+        except Exception as e:
+            print("Aviso: no se guardó la dirección:", e)
+
+    return _respuesta(True, "Publicación actualizada")
+
+
+@bp.route("/publicaciones/<int:publicacion_id>", methods=["DELETE"])
+@api_login_required
+def eliminar_publicacion(publicacion_id):
+    es_admin = session.get("rol") == "administrador"
+    if not es_admin and not PublicacionRepository.es_del_usuario(publicacion_id, session["usuario_id"]):
+        return _respuesta(False, "Solo puedes eliminar tus propias publicaciones", error_code=403)
+    try:
+        db.table("ubicaciones").delete().eq("publicacion_id", publicacion_id).execute()
+        db.table("publicaciones").delete().eq("id", publicacion_id).execute()
+    except Exception as e:
+        print("Error eliminando publicación:", e)
+        return _respuesta(False, "No se pudo eliminar la publicación", error_code=500)
+    return _respuesta(True, "Publicación eliminada")
 
 
 @bp.route("/publicaciones", methods=["POST"])
@@ -146,13 +233,20 @@ def crear_publicacion():
         return _respuesta(False, "No se pudo crear la publicación", error_code=500)
 
     # artista y tipo (columnas nuevas)
+    propio = bool(request.form.get("artista_propio"))
+    if propio:
+        artista = session.get("nombre_usuario")
+    else:
+        artista = " ".join((request.form.get("artista") or "").split()).lstrip("@").strip() or None
+    extra = {"artista": artista, "categoria": (request.form.get("categoria") or "GRAFITI").strip().upper()}
     try:
-        db.table("publicaciones").update({
-            "artista": (request.form.get("artista") or "").strip() or None,
-            "categoria": (request.form.get("categoria") or "GRAFITI").strip().upper(),
-        }).eq("id", pub_id).execute()
+        db.table("publicaciones").update({**extra, "artista_propio": propio}).eq("id", pub_id).execute()
     except Exception as e:
-        print("Aviso: no se guardó artista/categoria (¿falta correr el SQL?):", e)
+        print("Aviso: no se guardó artista_propio (¿falta correr el SQL?):", e)
+        try:
+            db.table("publicaciones").update(extra).eq("id", pub_id).execute()
+        except Exception as e2:
+            print("Aviso: no se guardó artista/categoria (¿falta correr el SQL?):", e2)
 
     lat, lng = request.form.get("lat"), request.form.get("lng")
     if lat and lng:
@@ -178,10 +272,46 @@ def artistas():
 
 # ---------- perfil ----------
 
+def _extras_usuario(uid):
+    try:
+        r = db.table("usuarios").select("tipo_artista, foto_url").eq("id", uid).execute()
+        return r.data[0] if r.data else {}
+    except Exception as e:
+        print("Aviso: faltan columnas tipo_artista/foto_url (corre el SQL):", e)
+        return {}
+
+
+def _registrar_tipo(nombre):
+    """Devuelve (nombre_guardado, error). Si el tipo no existe, lo agrega a la lista."""
+    nombre = " ".join((nombre or "").split())
+    if len(nombre) < 2 or len(nombre) > 40:
+        return None, "El tipo de artista debe tener entre 2 y 40 caracteres"
+    nombre = nombre[0].upper() + nombre[1:]
+    existentes = [x["nombre"] for x in db.table("tipos_artista").select("nombre").execute().data]
+    for t in existentes:
+        if t.lower() == nombre.lower():
+            return t, None
+    db.table("tipos_artista").insert({"nombre": nombre}).execute()
+    return nombre, None
+
+
+@bp.route("/tipos-artista", methods=["GET"])
+@api_login_required
+def tipos_artista():
+    try:
+        r = db.table("tipos_artista").select("nombre").order("nombre").execute()
+        return jsonify([x["nombre"] for x in r.data])
+    except Exception as e:
+        print("Aviso: falta la tabla tipos_artista (corre el SQL):", e)
+        return jsonify([])
+
+
 @bp.route("/perfil", methods=["GET"])
 @api_login_required
 def perfil():
-    return jsonify(PerfilService.obtener_perfil(session["usuario_id"]))
+    datos = dict(PerfilService.obtener_perfil(session["usuario_id"]) or {})
+    datos.update(_extras_usuario(session["usuario_id"]))
+    return jsonify(datos)
 
 
 @bp.route("/perfil", methods=["POST"])
@@ -191,9 +321,43 @@ def editar_perfil():
     nombre = (d.get("nombre_usuario") or "").strip()
     exito, mensaje = PerfilService.actualizar_datos_personales(
         session["usuario_id"], nombre, (d.get("biografia") or "").strip())
-    if exito:
-        session["nombre_usuario"] = nombre
-    return _respuesta(exito, mensaje, {"usuario": _usuario_actual()})
+    if not exito:
+        return _respuesta(False, mensaje)
+    session["nombre_usuario"] = nombre
+
+    if d.get("tipo_artista") is not None:
+        tipo = (d.get("tipo_artista") or "").strip()
+        try:
+            if tipo:
+                tipo, error = _registrar_tipo(tipo)
+                if error:
+                    return _respuesta(False, error)
+            db.table("usuarios").update({"tipo_artista": tipo or None}).eq("id", session["usuario_id"]).execute()
+        except Exception as e:
+            print("Error guardando tipo de artista:", e)
+            return _respuesta(False, "No se pudo guardar el tipo de artista", error_code=500)
+
+    return _respuesta(True, mensaje, {"usuario": _usuario_actual()})
+
+
+@bp.route("/perfil/foto", methods=["POST"])
+@api_login_required
+def foto_perfil():
+    archivo = request.files.get("foto")
+    if not archivo or not archivo.filename:
+        return _respuesta(False, "Elige una foto")
+    subir = getattr(PublicacionRepository, "subir_imagen", None)
+    if not subir:
+        return _respuesta(False, "Falta la función subir_imagen en PublicacionRepository", error_code=500)
+    url, error = subir(archivo)
+    if error:
+        return _respuesta(False, error)
+    try:
+        db.table("usuarios").update({"foto_url": url}).eq("id", session["usuario_id"]).execute()
+    except Exception as e:
+        print("Error guardando foto de perfil:", e)
+        return _respuesta(False, "No se pudo guardar la foto", error_code=500)
+    return _respuesta(True, "Foto actualizada", {"foto_url": url})
 
 
 # ---------- foros ----------
@@ -248,3 +412,57 @@ def crear_evento():
     # EventoService.crear lee los campos con .get(), igual que con request.form
     exito, error = EventoService.crear(session["usuario_id"], _datos())
     return _respuesta(exito, "Evento creado" if exito else error, ok_code=201)
+
+
+# ---------- foros: editar y borrar ----------
+
+@bp.route("/foros/<int:foro_id>/temas/<int:tema_id>", methods=["PUT"])
+@api_login_required
+def editar_tema(foro_id, tema_id):
+    d = _datos()
+    exito, mensaje = ForoService.editar_tema(
+        foro_id, tema_id, session["usuario_id"], d.get("titulo", ""), d.get("contenido", ""))
+    return _respuesta(exito, mensaje, error_code=403)
+
+
+@bp.route("/foros/<int:foro_id>/temas/<int:tema_id>", methods=["DELETE"])
+@api_login_required
+def eliminar_tema(foro_id, tema_id):
+    exito, mensaje = ForoService.eliminar_tema(foro_id, tema_id, session["usuario_id"])
+    return _respuesta(exito, mensaje, error_code=403)
+
+
+@bp.route("/foros/<int:foro_id>/temas/<int:tema_id>/respuestas/<int:respuesta_id>", methods=["PUT"])
+@api_login_required
+def editar_respuesta(foro_id, tema_id, respuesta_id):
+    exito, mensaje = ForoService.editar_respuesta(
+        foro_id, tema_id, respuesta_id, session["usuario_id"], _datos().get("contenido", ""))
+    return _respuesta(exito, mensaje, error_code=403)
+
+
+@bp.route("/foros/<int:foro_id>/temas/<int:tema_id>/respuestas/<int:respuesta_id>", methods=["DELETE"])
+@api_login_required
+def eliminar_respuesta(foro_id, tema_id, respuesta_id):
+    exito, mensaje = ForoService.eliminar_respuesta(foro_id, tema_id, respuesta_id, session["usuario_id"])
+    return _respuesta(exito, mensaje, error_code=403)
+
+
+# ---------- cuenta ----------
+
+@bp.route("/cuenta/clave", methods=["POST"])
+@api_login_required
+def cambiar_clave():
+    exito, mensaje = PerfilService.cambiar_contrasena((_datos().get("nueva_clave") or "").strip())
+    return _respuesta(exito, mensaje)
+
+
+@bp.route("/cuenta/desactivar", methods=["POST"])
+@api_login_required
+def desactivar_cuenta():
+    clave = _datos().get("contrasena") or ""
+    if not clave:
+        return _respuesta(False, "Escribe tu contraseña para confirmar.")
+    exito, mensaje = AuthService.dar_de_baja(session["usuario_id"], clave)
+    if exito:
+        session.clear()
+    return _respuesta(exito, mensaje)

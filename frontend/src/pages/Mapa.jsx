@@ -34,16 +34,19 @@ function agrupar(items) {
 export function MapaPanel({ obras, eventos, alto = 440 }) {
   const [vista, setVista] = useState("todo"); // todo | grafitis | eventos
   const [artista, setArtista] = useState("");
+  const [tipo, setTipo] = useState("");
 
   const artistas = [...new Set(obras.map((o) => o.artista).filter(Boolean))];
+  const tipoDe = (o) => o.usuarios?.tipo_artista || o.tipo_artista;
+  const tipos = [...new Set(obras.map(tipoDe).filter(Boolean))];
   const ahora = new Date();
   const puntos = [];
   if (vista !== "eventos") {
     obras
-      .filter((o) => o.latitud != null && (!artista || o.artista === artista))
+      .filter((o) => o.latitud != null && (!artista || o.artista === artista) && (!tipo || tipoDe(o) === tipo))
       .forEach((o) => puntos.push({ ...o, tipo: "grafiti" }));
   }
-  if (vista !== "grafitis" && !artista) {
+  if (vista !== "grafitis" && !artista && !tipo) {
     eventos
       .filter((e) => e.latitud != null)
       .forEach((e) => puntos.push({ ...e, tipo: "evento", pasado: new Date(e.fecha_hora) < ahora }));
@@ -87,6 +90,12 @@ export function MapaPanel({ obras, eventos, alto = 440 }) {
         <select value={artista} onChange={(e) => setArtista(e.target.value)}>
           <option value="">todos los artistas</option>
           {artistas.map((a) => <option key={a}>{a}</option>)}
+        </select>
+      </label>
+      <label style={{ display: "block", marginTop: 10 }}>Tipo de artista
+        <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+          <option value="">todos los tipos</option>
+          {tipos.map((t) => <option key={t}>{t}</option>)}
         </select>
       </label>
       <p className="muted" style={{ margin: 0 }}>Un pin por lugar; si hay varios, se agrupan con número. Lila: evento. Apagado: evento que ya pasó.</p>

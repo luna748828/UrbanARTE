@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPublicaciones, getEventos } from "../api.js";
+import { getPublicaciones, getEventos, eliminarPublicacion } from "../api.js";
 import Ventana from "../components/Ventana.jsx";
 import TarjetaGrafiti from "../components/TarjetaGrafiti.jsx";
 import { MapaPanel } from "./Mapa.jsx";
@@ -13,6 +13,16 @@ export default function Inicio() {
     getPublicaciones().then(setObras).catch((e) => setError(e.message));
     getEventos().then(setEventos).catch(() => {});
   }, []);
+
+  async function borrar(id) {
+    if (!window.confirm("¿Eliminar esta publicación?")) return;
+    try {
+      await eliminarPublicacion(id);
+      setObras((lista) => lista.filter((o) => o.id !== id));
+    } catch (e) {
+      setError(e.message);
+    }
+  }
 
   const ahora = new Date();
   const proximos = eventos
@@ -28,7 +38,7 @@ export default function Inicio() {
           {error && <p style={{ color: "var(--pink)" }}>{error}</p>}
           {obras === null && !error && <p className="muted">cargando...</p>}
           {obras && obras.length === 0 && <p className="muted">Aún no hay publicaciones. ¡Sube la primera desde Publicar!</p>}
-          {obras && obras.map((o, i) => <TarjetaGrafiti key={o.id} obra={o} indice={i} />)}
+          {obras && obras.map((o, i) => <TarjetaGrafiti key={o.id} obra={o} indice={i} onBorrar={borrar} onCambio={() => getPublicaciones().then(setObras)} />)}
         </Ventana>
       </div>
 

@@ -2,7 +2,7 @@ from db import db
 
 class EventoRepository:
     @staticmethod
-    def crear(organizador_id, nombre, descripcion, fecha_hora_iso, direccion_aprox, latitud, longitud):
+    def crear(organizador_id, nombre, descripcion, fecha_hora_iso, direccion_aprox, latitud, longitud, cupos=None):
         res = db.table("eventos").insert({
             "organizador_id": organizador_id,
             "nombre": nombre,
@@ -11,6 +11,7 @@ class EventoRepository:
             "direccion_aprox": direccion_aprox,
             "latitud": latitud,
             "longitud": longitud,
+            "cupos_disponibles": cupos,
         }).execute()
         return res.data[0]["id"]
 
@@ -56,3 +57,5 @@ class EventoRepository:
             .execute()
         )
         return res.data
+
+    

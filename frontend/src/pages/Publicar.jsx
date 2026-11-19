@@ -19,6 +19,7 @@ export default function Publicar() {
   const [vista, setVista] = useState(null);
   const [estado, setEstado] = useState({ texto: "", error: false });
   const [enviando, setEnviando] = useState(false);
+  const [yoLoHice, setYoLoHice] = useState(false);
 
   async function elegir(lat, lng) {
     setPunto([lat, lng]);
@@ -55,6 +56,7 @@ export default function Publicar() {
       setVista(null);
       setPunto(null);
       setDireccion("");
+      setYoLoHice(false);
     } catch (err) {
       setEstado({ texto: err.message, error: true });
     }
@@ -68,7 +70,16 @@ export default function Publicar() {
         <label>Tipo
           <select name="categoria"><option>GRAFITI</option><option>STENCIL</option><option>MURAL</option></select>
         </label>
-        <label>Artista (quién lo hizo, si lo sabes)<input name="artista" placeholder="@nombre" /></label>
+        <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input type="checkbox" name="artista_propio" style={{ width: "auto", margin: 0 }}
+            checked={yoLoHice} onChange={(e) => setYoLoHice(e.target.checked)} />
+          Yo lo hice
+        </label>
+        {!yoLoHice && (
+          <label>Artista (nombre de quien lo hizo, sin @)
+            <input name="artista" maxLength="60" placeholder="ej: Botero" />
+          </label>
+        )}
         <label>Foto desde tu dispositivo
           <input type="file" name="imagen_archivo" accept="image/*"
             onChange={(e) => setVista(e.target.files[0] ? URL.createObjectURL(e.target.files[0]) : null)} />

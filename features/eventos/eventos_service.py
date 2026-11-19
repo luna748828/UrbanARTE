@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from data.repositories.eventos import EventoRepository
+from data.repositories.asistentes import AsistenteRepository
 
 COLOMBIA = timezone(timedelta(hours=-5))
 
@@ -23,7 +24,6 @@ class EventoService:
             return False, "La descripción es obligatoria"
         if not fecha or not hora:
             return False, "Elige la fecha y la hora"
-
         try:
             momento = datetime.fromisoformat(f"{fecha}T{hora}").replace(tzinfo=COLOMBIA)
         except ValueError:
@@ -41,14 +41,31 @@ class EventoService:
             if not (-90 <= latitud <= 90 and -180 <= longitud <= 180):
                 return False, "Ubicación fuera de rango"
 
+        # Cupos: vacío = sin límite (se guarda como None); un número = cupos limitados
+        cupos = None
+        cupos_txt = str(form.get("cupos") or "").strip()
+        if cupos_txt:
+            try:
+                cupos = int(cupos_txt)
+            except ValueError:
+                return False, "Los cupos deben ser un número"
+            if not 1 <= cupos <= 10000:
+                return False, "Los cupos deben estar entre 1 y 10000"
+
         try:
-            EventoRepository.crear(
+            evento_id = EventoRepository.crear(
                 organizador_id, nombre_evento, descripcion, momento.isoformat(),
-                direccion, latitud, longitud,
+                direccion, latitud, longitud, cupos,
             )
         except Exception as e:
             print("Error creando evento:", e)
             return False, "No se pudo guardar el evento"
+
+        # El organizador queda inscrito automáticamente y NO gasta cupo
+        try:
+            AsistenteRepository.unirse(evento_id, organizador_id)
+        except Exception as e:
+            print("Aviso: no se pudo inscribir al organizador:", e)
         return True, None
 
     @staticmethod

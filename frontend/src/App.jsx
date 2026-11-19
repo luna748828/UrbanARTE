@@ -32,8 +32,7 @@ export default function App() {
             <main><Pagina /></main>
           </>
         )}
-        <div className="cnt">VISITANTES 000142</div>
-        <p className="muted" style={{ textAlign: "center", margin: 0 }}>UrbanARTE · hecho con React y mucho spray</p>
+        <p className="pie">UrbanARTE es un repositorio de arte</p>
       </div>
     </div>
   );

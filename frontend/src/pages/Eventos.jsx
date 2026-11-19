@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { getEventos, getMisEventos, unirseAEvento, salirDeEvento, crearEvento } from "../api.js";
+import { useAuth } from "../auth.jsx";
 import Ventana from "../components/Ventana.jsx";
 import SelectorUbicacion from "../components/SelectorUbicacion.jsx";
 
 export default function Eventos() {
+  const { usuario } = useAuth();
   const [eventos, setEventos] = useState([]);
   const [mios, setMios] = useState(new Set());
   const [mensaje, setMensaje] = useState({ texto: "", error: false });
   const [creando, setCreando] = useState(false);
   const [punto, setPunto] = useState(null);
+  const [limitados, setLimitados] = useState(false);
 
   async function cargar() {
     try {
@@ -43,6 +46,7 @@ export default function Eventos() {
       setMensaje({ texto: d.mensaje, error: false });
       setCreando(false);
       setPunto(null);
+      setLimitados(false);
       cargar();
     } catch (err) {
       setMensaje({ texto: err.message, error: true });
@@ -61,11 +65,13 @@ export default function Eventos() {
       <div className="muted">
         {e.direccion_aprox}
         {e.usuarios?.nombre_usuario ? ` · organiza @${e.usuarios.nombre_usuario}` : ""}
-        {e.cupos_disponibles != null ? ` · cupos: ${e.cupos_disponibles}` : ""}
+        {e.cupos_disponibles != null ? ` · cupos: ${e.cupos_disponibles}` : " · sin límite de cupos"}
       </div>
       <div style={{ marginTop: 8 }}>
         {pasado ? (
           <span className="chip">ya ocurrió</span>
+        ) : e.usuarios?.nombre_usuario && e.usuarios.nombre_usuario === usuario?.nombre_usuario ? (
+          <span className="chip">tú organizas este evento</span>
         ) : mios.has(e.id) ? (
           <button className="btn" onClick={() => accion(salirDeEvento, e.id)}>Salir del evento</button>
         ) : (
@@ -93,6 +99,15 @@ export default function Eventos() {
               <label style={{ flex: 1 }}>Hora<input type="time" name="hora" required /></label>
             </div>
             <label>Dirección aproximada (opcional)<input name="direccion" /></label>
+            <label>Cupos
+              <select value={limitados ? "limitados" : "ilimitados"} onChange={(e) => setLimitados(e.target.value === "limitados")}>
+                <option value="ilimitados">Sin límite de cupos</option>
+                <option value="limitados">Cupos limitados</option>
+              </select>
+            </label>
+            {limitados && (
+              <label>Cantidad de cupos<input type="number" name="cupos" min="1" max="10000" required /></label>
+            )}
             <p style={{ margin: "6px 0" }}>Toca el mapa para marcar dónde será (opcional)</p>
             <SelectorUbicacion punto={punto} onElegir={(lat, lng) => setPunto([lat, lng])} />
             <div style={{ marginTop: 10 }}>

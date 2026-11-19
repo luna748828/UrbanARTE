@@ -1,4 +1,3 @@
-
 from db import db
 
 
@@ -60,7 +59,7 @@ class AsistenteRepository:
     def obtener_evento(evento_id):
         res = (
             db.table("eventos")
-            .select("id, cupos_disponibles, fecha_hora")
+            .select("id, organizador_id, cupos_disponibles, fecha_hora")
             .eq("id", evento_id)
             .execute()
         )
