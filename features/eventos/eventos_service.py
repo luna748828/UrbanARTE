@@ -7,7 +7,7 @@ COLOMBIA = timezone(timedelta(hours=-5))
 class EventoService:
     @staticmethod
     def crear(organizador_id, form):
-        nombre = (form.get("nombre") or "").strip()
+        nombre_evento = (form.get("nombre") or "").strip()
         descripcion = (form.get("descripcion") or "").strip()
         fecha = (form.get("fecha") or "").strip()
         hora = (form.get("hora") or "").strip()
@@ -15,9 +15,9 @@ class EventoService:
         lat = (form.get("lat") or "").strip()
         lng = (form.get("lng") or "").strip()
 
-        if not nombre:
+        if not nombre_evento:
             return False, "El nombre es obligatorio"
-        if len(nombre) > 100:
+        if len(nombre_evento) > 100:
             return False, "El nombre es muy largo (máximo 100 caracteres)"
         if not descripcion:
             return False, "La descripción es obligatoria"
@@ -43,7 +43,7 @@ class EventoService:
 
         try:
             EventoRepository.crear(
-                organizador_id, nombre, descripcion, momento.isoformat(),
+                organizador_id, nombre_evento, descripcion, momento.isoformat(),
                 direccion, latitud, longitud,
             )
         except Exception as e:

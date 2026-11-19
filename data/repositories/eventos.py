@@ -25,3 +25,22 @@ class EventoRepository:
             .execute()
         )
         return res.data
+    
+    @staticmethod
+    def eventos_de_usuario(usuario_id):
+        filas = (
+            db.table("asistentes_evento")
+            .select("evento_id")
+            .eq("usuario_id", usuario_id)
+            .execute()
+        )
+        ids = [f["evento_id"] for f in filas.data]
+        if not ids:
+            return []
+        res = (
+            db.table("eventos")
+            .select("*")
+            .in_("id", ids)
+            .execute()
+        )
+        return res.data
